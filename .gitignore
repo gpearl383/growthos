@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build
+.next
+out
+dist
+.turbo
+
+# Local POC database
+.data/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# Vercel
+.vercel
+
+# Playwright MCP test artifacts
+.playwright-mcp/
+
+# Drizzle
+packages/db/migrations/meta
+
+# TypeScript
+*.tsbuildinfo

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowthOS — AI Social Media Marketing Assistant</title>
+<style>
+:root{--bg:#f8fafc;--surface:#fff;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--accent-bg:#eff6ff;--border:#e2e8f0;--sidebar:260px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.7;color:var(--text);background:var(--bg)}
+.layout{display:flex;min-height:100vh}
+nav{position:fixed;top:0;left:0;width:var(--sidebar);height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:1.25rem 1rem;font-size:.78rem}
+nav h2{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem}
+nav a{display:block;color:var(--muted);text-decoration:none;padding:.2rem .45rem;border-radius:4px;line-height:1.35}
+nav a:hover{background:var(--accent-bg);color:var(--accent)}
+main{margin-left:var(--sidebar);flex:1;max-width:900px;padding:2.5rem 2.5rem 4rem}
+.hero{background:linear-gradient(135deg,#1e3a8a,#2563eb,#3b82f6);color:#fff;padding:2.5rem;border-radius:14px;margin-bottom:2rem}
+.hero h1{font-size:1.85rem;line-height:1.2;margin-bottom:.75rem}
+.badge{display:inline-block;background:rgba(255,255,255,.18);padding:.2rem .65rem;border-radius:999px;font-size:.78rem;margin:.15rem .35rem .15rem 0}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.75rem 2rem;margin-bottom:1.5rem}
+h2{font-size:1.35rem;margin-bottom:.85rem;padding-bottom:.45rem;border-bottom:2px solid var(--accent)}
+h3{font-size:1.05rem;margin:1.25rem 0 .6rem}
+p{margin-bottom:.85rem}ul,ol{margin:0 0 .85rem 1.35rem}li{margin-bottom:.3rem}
+table{width:100%;border-collapse:collapse;margin:.85rem 0 1.25rem;font-size:.84rem}
+th,td{border:1px solid var(--border);padding:.5rem .7rem;text-align:left;vertical-align:top}
+th{background:#f8fafc;font-weight:600}
+blockquote{border-left:4px solid var(--accent);padding:.65rem 1rem;margin:.85rem 0;background:var(--accent-bg);border-radius:0 8px 8px 0}
+footer{text-align:center;color:var(--muted);font-size:.82rem;padding:2rem 0 1rem}
+a{color:var(--accent)}
+@media print{nav{display:none}main{margin-left:0;max-width:100%}section{break-inside:avoid}}
+@media(max-width:900px){nav{display:none}main{margin-left:0;padding:1.25rem}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav><h2>GrowthOS Plan</h2><a href="#overview">Overview</a>
+<a href="#who">Who It Is For</a>
+<a href="#principles">Principles</a>
+<a href="#features">MVP Features</a>
+<a href="#screens">Screens</a>
+<a href="#platforms">Platforms</a>
+<a href="#architecture">Architecture</a>
+<a href="#schedule">Schedule</a>
+<a href="#metrics">Metrics</a>
+<a href="#pricing">Pricing</a>
+<a href="#phase2">Phase 2+</a>
+<a href="#next">Next Steps</a>
+<a href="#docs">Docs</a></nav>
+<main>
+<header class="hero">
+<h1>GrowthOS</h1>
+<p style="font-size:1.1rem;opacity:.95;margin-bottom:1rem">AI social media marketing assistant for small business owners who do not have time to figure out Instagram, TikTok, Facebook, LinkedIn, or YouTube.</p>
+<div><span class="badge">Owner-first</span><span class="badge">Content + Leads + Auto-DMs</span><span class="badge">Not analytics</span><span class="badge">May 2026</span></div>
+</header>
+<section id="overview"><h2>Overview</h2>
+<p><strong>One-line pitch:</strong> Social media marketing without the marketing degree — content created, posts scheduled, leads captured, and DMs answered, even if you have never done any of this before.</p>
+<blockquote>Owners answer plain-English questions. GrowthOS creates posts, sets up lead capture, turns on auto-replies, and publishes. Leads show up in one inbox.</blockquote>
+<p><strong>Strategic north star:</strong> Guided marketing execution — not dashboards, not analytics, not marketing education.</p>
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:1rem;margin:1rem 0"><strong>Analytics role:</strong> Background only. Owners see a leads inbox and a weekly email. Detailed performance data is optional in Phase 2+.</div>
+</section><section id="who"><h2>Who It Is For</h2>
+<h3>Yes — this is for you if:</h3>
+<ul><li>You own a small business (1–25 employees)</li><li>You use or want social media but feel lost</li><li>You do not have time to learn funnels, DMs, or schedulers</li><li>You want customers, not a marketing course</li></ul>
+<h3>Not for:</h3>
+<ul><li>Marketing agencies or social media managers</li><li>People who enjoy configuring martech</li><li>Owners who want analytics as the primary product</li></ul>
+</section><section id="principles"><h2>Product Principles</h2>
+<table><thead><tr><th>Principle</th><th>In practice</th></tr></thead>
+<tbody>
+<tr><td><strong>No jargon</strong></td><td>Get booking requests — not optimize conversion funnel</td></tr>
+<tr><td><strong>Do it for me</strong></td><td>Wizards and presets, not empty dashboards</td></tr>
+<tr><td><strong>One next step</strong></td><td>Post this · Turn on auto-reply · Review 2 new leads</td></tr>
+<tr><td><strong>15-minute first win</strong></td><td>Live lead page + first post in one session</td></tr>
+<tr><td><strong>Mobile-first</strong></td><td>Check leads on your phone between jobs</td></tr>
+</tbody></table>
+</section><section id="features"><h2>MVP Features</h2>
+<ol>
+<li><strong>Get Started wizard</strong> — Business type, goal, offer, photos</li>
+<li><strong>AI content creation</strong> — Hooks, captions, hashtags; platform-specific versions</li>
+<li><strong>Lead pages (automatic)</strong> — Book a call · Get a quote · Free guide</li>
+<li><strong>DM and comment auto-replies</strong> — INFO/PRICE triggers auto-DM with link</li>
+<li><strong>Publish and schedule</strong> — Instagram + Facebook (M4)</li>
+<li><strong>Leads inbox</strong> — Default home; call, text, mark booked</li>
+<li><strong>AI helper chat</strong> — Always-available plain-English help</li>
+</ol>
+<h3>Not in MVP</h3>
+<ul><li>Analytics dashboards</li><li>Design editor</li><li>Image/video generation</li><li>TikTok, LinkedIn, YouTube (phased)</li><li>HubSpot, paid ads</li></ul>
+</section><section id="screens"><h2>Core Screens</h2>
+<table><thead><tr><th>Screen</th><th>Route</th></tr></thead>
+<tbody>
+<tr><td>Get Started</td><td>/get-started</td></tr>
+<tr><td>Create and Post</td><td>/create</td></tr>
+<tr><td>Leads (home)</td><td>/leads</td></tr>
+<tr><td>Auto-Replies</td><td>/auto-replies</td></tr>
+</tbody></table>
+<p><strong>No Analytics tab in MVP.</strong></p>
+</section><section id="platforms"><h2>Platform Rollout</h2>
+<table><thead><tr><th>Platform</th><th>When</th></tr></thead>
+<tbody>
+<tr><td>Instagram + Facebook</td><td>MVP M4</td></tr>
+<tr><td>TikTok</td><td>P1.5 M6-7</td></tr>
+<tr><td>LinkedIn + YouTube</td><td>Phase 2</td></tr>
+</tbody></table>
+</section><section id="architecture"><h2>Architecture and Stack</h2>
+<p><strong>Stack:</strong> Next.js 15 · Clerk · Neon Postgres · Drizzle · Inngest · Cloudflare redirects · Resend · Stripe · Vercel</p>
+<p>See <a href="GROWTHOS_MVP_TECHNICAL_SPEC.md">GROWTHOS_MVP_TECHNICAL_SPEC.md</a> for schema, routes, Meta API scopes, and Inngest jobs.</p>
+</section><section id="schedule"><h2>5-Month Build Schedule</h2>
+<table><thead><tr><th>Month</th><th>Ship</th><th>Owner sees</th></tr></thead>
+<tbody>
+<tr><td>M1</td><td>Scaffold + wizard + lead pages</td><td>Live signup page from 5 questions</td></tr>
+<tr><td>M2</td><td>AI content + leads inbox</td><td>AI wrote my post; first lead notification</td></tr>
+<tr><td>M3</td><td>Auto-replies + AI chat</td><td>INFO comments get my link automatically</td></tr>
+<tr><td>M4</td><td>Instagram + Facebook publish</td><td>Posts went live without figuring out IG</td></tr>
+<tr><td>M5</td><td>Stripe + concierge beta</td><td>20 owners live with help</td></tr>
+</tbody></table>
+<p><strong>Repo:</strong> ~/Documents/growthos/</p>
+</section><section id="metrics"><h2>Success Metrics</h2>
+<table><thead><tr><th>Metric</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td>Complete Get Started</td><td>70%</td></tr>
+<tr><td>First post within 7 days</td><td>60%</td></tr>
+<tr><td>Auto-reply enabled</td><td>50%</td></tr>
+<tr><td>First lead within 30 days</td><td>40%</td></tr>
+<tr><td>Weekly return to check leads</td><td>50% WAU</td></tr>
+<tr><td>Beta to paid</td><td>40%</td></tr>
+</tbody></table>
+</section><section id="pricing"><h2>Pricing and GTM</h2>
+<p><strong>$79/mo</strong> — AI content, IG + FB, lead pages, auto-replies, leads inbox, AI chat</p>
+<p><strong>Trial:</strong> 14 days + optional setup call</p>
+<p><strong>GTM:</strong> Stop guessing what to post. Get content, leads, and auto-replies set up in one afternoon — no marketing degree required.</p>
+</section><section id="phase2"><h2>Phase 2 and Beyond</h2>
+<p><strong>After MVP:</strong> TikTok, LinkedIn, email follow-ups, SMS lead alerts, opt-in performance tips.</p>
+<p>Full platform vision (attribution engine, AI strategist, 11 modules) remains long-term backlog — not MVP.</p>
+</section><section id="next"><h2>Next Steps</h2>
+<ol>
+<li>Interview 10 small business owners</li>
+<li>Figma: Get Started, Create and Post, Leads inbox</li>
+<li>Meta developer app + App Review</li>
+<li>Neon DB + Clerk</li>
+<li>Scaffold repo at ~/Documents/growthos/</li>
+<li>Build M1: wizard, lead page, leads inbox</li>
+</ol>
+</section><section id="docs"><h2>Documentation Index</h2>
+<table><thead><tr><th>Document</th><th>File</th></tr></thead>
+<tbody>
+<tr><td>Product plan (this file)</td><td>GROWTHOS_PLAN.html</td></tr>
+<tr><td>MVP technical spec</td><td><a href="GROWTHOS_MVP_TECHNICAL_SPEC.md">GROWTHOS_MVP_TECHNICAL_SPEC.md</a></td></tr>
+<tr><td>MVP summary</td><td><a href="GROWTHOS_MVP_REVISED.md">GROWTHOS_MVP_REVISED.md</a></td></tr>
+<tr><td>Docs index</td><td><a href="README.md">README.md</a></td></tr>
+<tr><td>Archived blueprint</td><td>AI_MARKETING_OS_BLUEPRINT.html (superseded)</td></tr>
+</tbody></table>
+</section>
+<footer><p>GrowthOS — AI Social Media Marketing Assistant · May 2026 · Confidential</p></footer>
+</main>
+</div>
+</body>
+</html>

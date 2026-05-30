@@ -1,0 +1,32 @@
+{
+  "name": "growthos",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "pnpm --filter @growthos/web test",
+    "smoke": "node scripts/smoke.mjs",
+    "db:setup": "node scripts/migrate.mjs",
+    "db:check": "node scripts/db-check.mjs",
+    "db:generate": "pnpm --filter @growthos/db generate",
+    "db:migrate": "pnpm --filter @growthos/db migrate",
+    "db:studio": "pnpm --filter @growthos/db studio"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.4.6",
+    "postgres": "^3.4.9",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "overrides": {
+      "drizzle-orm": "0.44.7"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
