@@ -14,6 +14,7 @@ export type LeadStatusKey =
 export type PostStatusKey =
   | "draft"
   | "scheduled"
+  | "publishing"
   | "published"
   | "failed"
   | "copied";
@@ -67,6 +68,7 @@ const LEAD_STATUSES = [
 const POST_STATUSES = [
   "draft",
   "scheduled",
+  "publishing",
   "published",
   "failed",
   "copied",

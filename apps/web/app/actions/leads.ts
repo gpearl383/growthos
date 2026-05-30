@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { updateLeadStatus, type LeadStatus } from "@/lib/leads";
+import { deleteLead, updateLeadStatus, type LeadStatus } from "@/lib/leads";
 import { dbConfigured } from "@/lib/env";
 import { getOrCreateTenant } from "@/lib/tenant";
 
@@ -49,4 +49,28 @@ export async function setLeadStatus(formData: FormData) {
 
   revalidatePath("/leads");
   redirect("/leads?updated=1");
+}
+
+export async function removeLead(formData: FormData) {
+  if (!dbConfigured) {
+    return;
+  }
+
+  const parsed = z
+    .object({ leadId: z.string().uuid() })
+    .safeParse({ leadId: formData.get("leadId") });
+
+  if (!parsed.success) {
+    return;
+  }
+
+  const tenant = await getOrCreateTenant();
+  const deleted = await deleteLead(tenant.id, parsed.data.leadId);
+
+  if (!deleted) {
+    return;
+  }
+
+  revalidatePath("/leads");
+  redirect("/leads?deleted=1");
 }

@@ -114,6 +114,21 @@ export default async function PublicLeadPage({
                 {cta}
               </Button>
             </form>
+
+            {result.tenant.websiteUrl ? (
+              <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                Or{" "}
+                <a
+                  href={result.tenant.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-400"
+                >
+                  visit our website
+                </a>{" "}
+                to learn more.
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       </div>

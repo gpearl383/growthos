@@ -49,8 +49,13 @@ export function GetStartedWizard({
   const [businessType, setBusinessType] = useState<BusinessType>("local_services");
   const [goal, setGoal] = useState<TenantGoal>("bookings");
   const [offerText, setOfferText] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [photoUrls, setPhotoUrls] = useState("");
+
+  const websiteUrlTrimmed = websiteUrl.trim();
+  const websiteUrlLooksValid =
+    websiteUrlTrimmed.length === 0 || /^https?:\/\/\S+\.\S+/i.test(websiteUrlTrimmed);
 
   const [state, formAction, pending] = useActionState(
     completeOnboarding,
@@ -76,7 +81,7 @@ export function GetStartedWizard({
   function canContinue() {
     switch (step) {
       case 0:
-        return businessName.trim().length >= 2;
+        return businessName.trim().length >= 2 && websiteUrlLooksValid;
       case 1:
         return Boolean(goal);
       case 2:
@@ -135,6 +140,33 @@ export function GetStartedWizard({
                   className="w-full rounded-md border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-900"
                   placeholder="Acme HVAC"
                 />
+              </label>
+              <label className="block space-y-2 text-sm">
+                <span className="font-medium">
+                  Website URL{" "}
+                  <span className="font-normal text-slate-500">(optional)</span>
+                </span>
+                <input
+                  value={websiteUrl}
+                  onChange={(event) => setWebsiteUrl(event.target.value)}
+                  inputMode="url"
+                  autoComplete="url"
+                  className={`w-full rounded-md border px-3 py-2 dark:bg-slate-900 ${
+                    websiteUrlLooksValid
+                      ? "border-slate-200 dark:border-slate-700"
+                      : "border-red-400 dark:border-red-700"
+                  }`}
+                  placeholder="https://yourbusiness.com"
+                />
+                <span className="text-slate-500">
+                  We&apos;ll link to it from your lead page so people can learn
+                  more about you.
+                </span>
+                {!websiteUrlLooksValid ? (
+                  <span className="block text-red-600 dark:text-red-400">
+                    Use a full URL starting with http:// or https://
+                  </span>
+                ) : null}
               </label>
               <div className="space-y-3">
                 <p className="text-sm font-medium">Business type</p>
@@ -296,6 +328,7 @@ export function GetStartedWizard({
             <input type="hidden" name="businessType" value={businessType} />
             <input type="hidden" name="goal" value={goal} />
             <input type="hidden" name="offerText" value={offerText} />
+            <input type="hidden" name="websiteUrl" value={websiteUrl} />
             <input type="hidden" name="logoUrl" value={logoUrl} />
             <input type="hidden" name="photoUrls" value={photoUrls} />
             <Button type="submit" disabled={pending}>

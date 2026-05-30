@@ -1,6 +1,9 @@
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // ElevenLabs "Rachel"
 
-export async function generateVoiceover(text: string): Promise<{
+export async function generateVoiceover(
+  text: string,
+  apiKey: string,
+): Promise<{
   buffer: Buffer;
   mimeType: string;
 }> {
@@ -11,7 +14,7 @@ export async function generateVoiceover(text: string): Promise<{
     {
       method: "POST",
       headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY ?? "",
+        "xi-api-key": apiKey,
         "Content-Type": "application/json",
         Accept: "audio/mpeg",
       },

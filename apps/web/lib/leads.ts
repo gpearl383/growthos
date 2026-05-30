@@ -82,6 +82,27 @@ export async function updateLeadStatus(
   return updated;
 }
 
+export async function deleteLead(tenantId: string, leadId: string) {
+  const db = getDb();
+
+  // events.leadId references leads.id without ON DELETE CASCADE, so we
+  // detach the events first (keeping them for analytics history) then drop
+  // the lead. Both inside a transaction so we never leave dangling refs.
+  return db.transaction(async (tx) => {
+    await tx
+      .update(events)
+      .set({ leadId: null })
+      .where(and(eq(events.leadId, leadId), eq(events.tenantId, tenantId)));
+
+    const [deleted] = await tx
+      .delete(leads)
+      .where(and(eq(leads.id, leadId), eq(leads.tenantId, tenantId)))
+      .returning();
+
+    return deleted ?? null;
+  });
+}
+
 export function formatLeadSource(source: string) {
   const labels: Record<string, string> = {
     form: "Lead page",

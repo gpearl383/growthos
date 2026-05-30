@@ -125,6 +125,7 @@ export type OnboardingFormData = {
   businessType: BusinessType;
   goal: TenantGoal;
   offerText: string;
+  websiteUrl?: string;
   logoUrl?: string;
   photoUrls: string[];
 };

@@ -8,6 +8,7 @@ import {
 } from "@growthos/ui/card";
 
 import { setLeadStatus } from "@/app/actions/leads";
+import { DeleteLeadButton } from "@/components/leads/delete-lead-button";
 import {
   formatLeadSource,
   formatLeadStatus,
@@ -110,6 +111,8 @@ function LeadActions({ lead }: { lead: LeadRecord }) {
           </Button>
         </form>
       ) : null}
+
+      <DeleteLeadButton leadId={lead.id} leadName={lead.name} />
     </div>
   );
 }

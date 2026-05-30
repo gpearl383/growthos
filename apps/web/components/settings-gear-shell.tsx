@@ -1,12 +1,13 @@
-import { AiHelperChat } from "@/components/ai-helper/chat";
 import { getOnboardingState } from "@/lib/onboarding-state";
 
-export async function AiHelperShell() {
+import { SettingsGear } from "./settings-gear";
+
+export async function SettingsGearShell() {
   const { onboardingComplete } = await getOnboardingState();
 
   if (!onboardingComplete) {
     return null;
   }
 
-  return <AiHelperChat />;
+  return <SettingsGear />;
 }

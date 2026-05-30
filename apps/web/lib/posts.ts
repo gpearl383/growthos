@@ -96,6 +96,23 @@ export async function listDueScheduledPosts() {
   });
 }
 
+/**
+ * Atomically claim a scheduled post for publishing. Uses a conditional update
+ * scoped to status='scheduled' so two concurrent workers can't both publish
+ * the same row — only the winner sees a returned record.
+ */
+export async function claimPostForPublishing(postId: string) {
+  const db = getDb();
+
+  const [claimed] = await db
+    .update(posts)
+    .set({ status: "publishing" })
+    .where(and(eq(posts.id, postId), eq(posts.status, "scheduled")))
+    .returning();
+
+  return claimed ?? null;
+}
+
 export async function markPostPublished(
   tenantId: string,
   postId: string,
@@ -156,6 +173,7 @@ export function formatPostStatus(status: PostRecord["status"]) {
   const labels: Record<PostRecord["status"], string> = {
     draft: "Draft",
     scheduled: "Scheduled",
+    publishing: "Publishing…",
     published: "Published",
     failed: "Failed",
     copied: "Copied",

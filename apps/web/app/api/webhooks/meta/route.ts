@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { metaWebhookVerifyToken } from "@/lib/env";
+import { verifyMetaSignature } from "@/lib/meta/config";
 import { processMetaWebhookPayload } from "@/lib/meta/webhooks";
 
 export async function GET(request: Request) {
@@ -17,10 +18,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rawBody = await request.text();
+
+  if (!verifyMetaSignature(rawBody, request.headers.get("x-hub-signature-256"))) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
   let payload: unknown;
 
   try {
-    payload = await request.json();
+    payload = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }

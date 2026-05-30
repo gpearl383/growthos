@@ -3,6 +3,9 @@ import { z } from "zod";
 
 import { createLeadFromForm } from "@/lib/leads";
 import { dbConfigured } from "@/lib/env";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+const LEAD_RATE_LIMIT = { max: 10, windowMs: 60_000 };
 
 const leadSubmissionSchema = z.object({
   tenantSlug: z.string().trim().min(1),
@@ -42,6 +45,27 @@ export async function POST(request: Request) {
       { error: "Lead capture is not configured yet." },
       { status: 503 },
     );
+  }
+
+  const ip = getClientIp(request);
+  const limit = checkRateLimit(`leads:${ip}`, LEAD_RATE_LIMIT);
+
+  if (!limit.ok) {
+    const retryAfterSec = Math.max(1, Math.ceil(limit.retryAfterMs / 1000));
+
+    if (isJsonRequest(request)) {
+      return NextResponse.json(
+        { error: "Too many submissions. Please try again in a moment." },
+        { status: 429, headers: { "Retry-After": String(retryAfterSec) } },
+      );
+    }
+
+    const redirectUrl = new URL(request.url);
+    const tenantSlugRaw = new URL(request.url).searchParams.get("tenantSlug");
+    const pageSlugRaw = new URL(request.url).searchParams.get("pageSlug");
+    redirectUrl.pathname = `/p/${tenantSlugRaw ?? ""}/${pageSlugRaw ?? ""}`;
+    redirectUrl.searchParams.set("error", "rate_limit");
+    return NextResponse.redirect(redirectUrl, { status: 303 });
   }
 
   const body = await parseBody(request);

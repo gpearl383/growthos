@@ -1,11 +1,13 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  index,
   jsonb,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -37,9 +39,16 @@ export const mediaAssetTypeEnum = pgEnum("media_asset_type", [
   "audio",
 ]);
 
+export const secretProviderEnum = pgEnum("secret_provider", [
+  "anthropic",
+  "openai",
+  "elevenlabs",
+]);
+
 export const postStatusEnum = pgEnum("post_status", [
   "draft",
   "scheduled",
+  "publishing",
   "published",
   "failed",
   "copied",
@@ -76,6 +85,7 @@ export const tenants = pgTable("tenants", {
   businessName: text("business_name"),
   goal: tenantGoalEnum("goal"),
   offerText: text("offer_text"),
+  websiteUrl: text("website_url"),
   onboardingComplete: boolean("onboarding_complete").default(false).notNull(),
   plan: tenantPlanEnum("plan").default("trial").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -148,7 +158,11 @@ export const posts = pgTable("posts", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (table) => [
+  index("posts_tenant_id_idx").on(table.tenantId),
+  index("posts_tenant_status_idx").on(table.tenantId, table.status),
+  index("posts_scheduled_at_idx").on(table.scheduledAt),
+]);
 
 export const mediaAssets = pgTable("media_assets", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -166,6 +180,31 @@ export const mediaAssets = pgTable("media_assets", {
     .notNull(),
 });
 
+export const tenantSecrets = pgTable(
+  "tenant_secrets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    provider: secretProviderEnum("provider").notNull(),
+    valueEnc: text("value_enc").notNull(),
+    last4: text("last4"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("tenant_secrets_tenant_provider_idx").on(
+      table.tenantId,
+      table.provider,
+    ),
+  ],
+);
+
 export const socialAccounts = pgTable("social_accounts", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id")
@@ -180,7 +219,11 @@ export const socialAccounts = pgTable("social_accounts", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (table) => [
+  index("social_accounts_tenant_id_idx").on(table.tenantId),
+  index("social_accounts_tenant_platform_idx").on(table.tenantId, table.platform),
+  index("social_accounts_platform_user_id_idx").on(table.platformUserId),
+]);
 
 export const autoReplyPresets = pgTable("auto_reply_presets", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -214,7 +257,7 @@ export const leads = pgTable("leads", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (table) => [index("leads_tenant_id_idx").on(table.tenantId)]);
 
 export const events = pgTable("events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -228,7 +271,10 @@ export const events = pgTable("events", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (table) => [
+  index("events_tenant_id_idx").on(table.tenantId),
+  index("events_lead_id_idx").on(table.leadId),
+]);
 
 export const tenantsRelations = relations(tenants, ({ many }) => ({
   brandAssets: many(brandAssets),

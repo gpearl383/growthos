@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { eq, tenants } from "@growthos/db";
+
+import { getDb } from "@/lib/db";
 import { dbConfigured } from "@/lib/env";
 import {
   getBrandPhotoUrls,
@@ -10,8 +13,13 @@ import {
   setBrandPhotoUrls,
 } from "@/lib/brand";
 import { getOrCreateTenant } from "@/lib/tenant";
+import { isHttpUrl } from "@/lib/url-safety";
 
-const urlSchema = z.string().trim().url();
+const urlSchema = z
+  .string()
+  .trim()
+  .url()
+  .refine(isHttpUrl, "Use an image URL starting with http:// or https://");
 
 export type BrandActionState = {
   error?: string;
@@ -48,6 +56,66 @@ export async function addBrandPhoto(
   revalidatePath("/create");
 
   return { success: "Photo added." };
+}
+
+const websiteSchema = z
+  .string()
+  .trim()
+  .max(2048, "URL is too long")
+  .optional()
+  .transform((value) => (value && value.length > 0 ? value : undefined))
+  .pipe(
+    z.union([
+      z
+        .string()
+        .url("Use a full URL starting with http:// or https://")
+        .refine(isHttpUrl, "Use a full URL starting with http:// or https://"),
+      z.undefined(),
+    ]),
+  );
+
+export type WebsiteActionState = {
+  error?: string;
+  success?: string;
+  websiteUrl?: string | null;
+};
+
+export async function updateBusinessWebsite(
+  _prevState: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
+  if (!dbConfigured) {
+    return { error: "Database is not configured." };
+  }
+
+  const parsed = websiteSchema.safeParse(formData.get("websiteUrl"));
+  if (!parsed.success) {
+    return {
+      error:
+        parsed.error.issues[0]?.message ??
+        "Use a full URL starting with http:// or https://",
+    };
+  }
+
+  const tenant = await getOrCreateTenant();
+  const db = getDb();
+  const nextValue = parsed.data ?? null;
+
+  await db
+    .update(tenants)
+    .set({ websiteUrl: nextValue })
+    .where(eq(tenants.id, tenant.id));
+
+  revalidatePath("/settings/brand");
+  revalidatePath("/create");
+  if (tenant.slug) {
+    revalidatePath(`/p/${tenant.slug}/offer`);
+  }
+
+  return {
+    success: nextValue ? "Website saved." : "Website cleared.",
+    websiteUrl: nextValue,
+  };
 }
 
 export async function removeBrandPhoto(formData: FormData) {

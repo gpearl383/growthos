@@ -17,7 +17,12 @@ import { listLeadsForTenant } from "@/lib/leads";
 import { getOrCreateTenant } from "@/lib/tenant";
 
 type LeadsPageProps = {
-  searchParams: Promise<{ welcome?: string; page?: string; updated?: string }>;
+  searchParams: Promise<{
+    welcome?: string;
+    page?: string;
+    updated?: string;
+    deleted?: string;
+  }>;
 };
 
 export default async function LeadsPage({ searchParams }: LeadsPageProps) {
@@ -63,6 +68,10 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
       <div className="space-y-6">
         {params.updated === "1" ? (
           <FlashBanner>Lead status updated.</FlashBanner>
+        ) : null}
+
+        {params.deleted === "1" ? (
+          <FlashBanner>Lead deleted.</FlashBanner>
         ) : null}
 
         {params.welcome === "1" && params.page ? (

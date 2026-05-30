@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "crypto";
+
 import { metaConfigured } from "@/lib/env";
 import {
   createSignedOAuthState,
@@ -49,6 +51,39 @@ export function createOAuthState(tenantId: string) {
 
 export function parseOAuthState(state: string) {
   return parseSignedOAuthState(state, signingSecret());
+}
+
+/**
+ * Verifies the X-Hub-Signature-256 header Meta sends with webhook POSTs.
+ * Returns true when the HMAC-SHA256 of the raw body (keyed with META_APP_SECRET)
+ * matches the header. When Meta isn't configured we skip verification so local
+ * dev still works — but a configured deployment will reject forged payloads.
+ */
+export function verifyMetaSignature(
+  rawBody: string,
+  signatureHeader: string | null,
+): boolean {
+  if (!metaConfigured) {
+    return true;
+  }
+
+  if (!signatureHeader || !signatureHeader.startsWith("sha256=")) {
+    return false;
+  }
+
+  const provided = signatureHeader.slice("sha256=".length);
+  const expected = createHmac("sha256", process.env.META_APP_SECRET!)
+    .update(rawBody, "utf8")
+    .digest("hex");
+
+  const providedBuf = Buffer.from(provided, "hex");
+  const expectedBuf = Buffer.from(expected, "hex");
+
+  if (providedBuf.length !== expectedBuf.length) {
+    return false;
+  }
+
+  return timingSafeEqual(providedBuf, expectedBuf);
 }
 
 export type MetaPageAccount = {

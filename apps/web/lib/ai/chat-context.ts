@@ -34,6 +34,7 @@ export async function buildChatContext(tenant: TenantRecord) {
     businessType: tenant.businessType ?? "local business",
     goal: tenant.goal ?? "get customers",
     offerText: tenant.offerText ?? "Helpful local service",
+    websiteUrl: tenant.websiteUrl ?? null,
     totalLeads: leadCountRow?.value ?? 0,
     leadsThisWeek: recentLeadsRow?.value ?? 0,
     scheduledThisWeek,
@@ -63,7 +64,7 @@ Business context:
 - Name: ${context.businessName}
 - Type: ${context.businessType}
 - Goal: ${context.goal}
-- Offer: ${context.offerText}
+- Offer: ${context.offerText}${context.websiteUrl ? `\n- Website: ${context.websiteUrl}` : ""}
 - Total leads: ${context.totalLeads}
 - Leads this week: ${context.leadsThisWeek}
 - Scheduled posts this week: ${context.scheduledThisWeek}

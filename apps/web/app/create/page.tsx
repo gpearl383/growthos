@@ -7,16 +7,11 @@ import { PostStudio } from "@/components/create/post-studio";
 import type { StudioAsset } from "@/components/create/studio";
 import { FlashBanner } from "@/components/flash-banner";
 import { SetupError } from "@/components/setup-error";
-import {
-  anthropicConfigured,
-  canvaConfigured,
-  dbConfigured,
-  elevenlabsConfigured,
-  openaiConfigured,
-} from "@/lib/env";
+import { canvaConfigured, dbConfigured } from "@/lib/env";
 import { getDb } from "@/lib/db";
 import { listMediaAssetsForTenant } from "@/lib/media/assets";
 import { listPostsForTenant } from "@/lib/posts";
+import { getSecretStatuses } from "@/lib/secrets";
 import { listSocialAccountsForTenant } from "@/lib/social-accounts";
 import { getOrCreateTenant } from "@/lib/tenant";
 
@@ -70,6 +65,10 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     const drafts = await listPostsForTenant(tenant.id);
     const mediaAssets = await listMediaAssetsForTenant(tenant.id);
     const accounts = await listSocialAccountsForTenant(tenant.id);
+    const secretStatuses = await getSecretStatuses(tenant.id);
+    const isProviderConfigured = (provider: "anthropic" | "openai" | "elevenlabs") =>
+      secretStatuses.find((status) => status.provider === provider)?.configured ??
+      false;
 
     const isConnected = (platform: "instagram" | "facebook" | "tiktok") =>
       accounts.find((account) => account.platform === platform)?.status ===
@@ -139,7 +138,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         <PostStudio
           key={resumeDraft?.id ?? "new"}
           businessName={tenant.businessName ?? "Your business"}
-          aiConfigured={anthropicConfigured}
+          aiConfigured={isProviderConfigured("anthropic")}
           assets={studioAssets}
           connected={{
             instagram: isConnected("instagram"),
@@ -147,8 +146,8 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
             tiktok: isConnected("tiktok"),
           }}
           configured={{
-            openai: openaiConfigured,
-            elevenlabs: elevenlabsConfigured,
+            openai: isProviderConfigured("openai"),
+            elevenlabs: isProviderConfigured("elevenlabs"),
             canva: canvaConfigured,
           }}
           initialDraft={initialDraft}

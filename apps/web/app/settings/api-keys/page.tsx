@@ -1,18 +1,17 @@
 import { redirect } from "next/navigation";
 
-import { BrandPhotosPanel } from "@/components/settings/brand-photos-panel";
-import { BusinessWebsitePanel } from "@/components/settings/business-website-panel";
+import { ApiKeysPanel } from "@/components/settings/api-keys-panel";
 import { SetupError } from "@/components/setup-error";
-import { getBrandPhotoUrls, MAX_BRAND_PHOTOS } from "@/lib/brand";
 import { dbConfigured } from "@/lib/env";
+import { getSecretStatuses } from "@/lib/secrets";
 import { getOrCreateTenant } from "@/lib/tenant";
 
-export default async function BrandSettingsPage() {
+export default async function ApiKeysSettingsPage() {
   if (!dbConfigured) {
     return (
       <SetupError
-        title="Brand settings need a database"
-        description="Connect a database to manage your brand photos."
+        title="API keys need a database"
+        description="Connect a database to store your provider keys."
         details="Add DATABASE_URL to apps/web/.env.local and run migrations."
       />
     );
@@ -26,7 +25,7 @@ export default async function BrandSettingsPage() {
       error instanceof Error ? error.message : "Unknown database error";
     return (
       <SetupError
-        title="Could not load brand settings"
+        title="Could not load API keys"
         description="The app could not reach the database. Run pnpm db:setup and restart the dev server."
         details={message}
       />
@@ -38,18 +37,17 @@ export default async function BrandSettingsPage() {
   }
 
   try {
-    const photos = await getBrandPhotoUrls(tenant.id);
+    const statuses = await getSecretStatuses(tenant.id);
 
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Brand</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">API keys</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Manage your website link and the photos available to the Post Studio.
+            Connect AI providers without touching any config files.
           </p>
         </div>
-        <BusinessWebsitePanel websiteUrl={tenant.websiteUrl ?? null} />
-        <BrandPhotosPanel photos={photos} maxPhotos={MAX_BRAND_PHOTOS} />
+        <ApiKeysPanel statuses={statuses} />
       </div>
     );
   } catch (error) {
@@ -57,7 +55,7 @@ export default async function BrandSettingsPage() {
       error instanceof Error ? error.message : "Unknown database error";
     return (
       <SetupError
-        title="Could not load brand settings"
+        title="Could not load API keys"
         description="The database schema may be out of date. Run pnpm db:setup, then restart the dev server."
         details={message}
       />

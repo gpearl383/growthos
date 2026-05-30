@@ -7,6 +7,8 @@ import { getOrCreateTenant } from "@/lib/tenant";
 
 export const maxDuration = 30;
 
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
 export async function POST(request: Request) {
   if (!dbConfigured) {
     return NextResponse.json(
@@ -29,6 +31,13 @@ export async function POST(request: Request) {
 
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "No file provided." }, { status: 400 });
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json(
+      { error: "File is too large. The maximum upload size is 50 MB." },
+      { status: 413 },
+    );
   }
 
   try {

@@ -9,6 +9,7 @@
     "test": "pnpm --filter @growthos/web test",
     "smoke": "node scripts/smoke.mjs",
     "db:setup": "node scripts/migrate.mjs",
+    "db:reset": "node scripts/db-reset.mjs",
     "db:check": "node scripts/db-check.mjs",
     "db:generate": "pnpm --filter @growthos/db generate",
     "db:migrate": "pnpm --filter @growthos/db migrate",

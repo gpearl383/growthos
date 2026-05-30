@@ -12,7 +12,7 @@ import Link from "next/link";
 
 import { AiHelperShell } from "@/components/ai-helper/shell";
 import { AppNavShell } from "@/components/app-nav-shell";
-import { SettingsGear } from "@/components/settings-gear";
+import { SettingsGearShell } from "@/components/settings-gear-shell";
 import { clerkConfigured } from "@/lib/env";
 import "./globals.css";
 
@@ -73,13 +73,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     </SignUpButton>
                   </SignedOut>
                   <SignedIn>
-                    <SettingsGear />
+                    <SettingsGearShell />
                     <UserButton afterSignOutUrl="/" />
                   </SignedIn>
                 </>
               ) : (
                 <>
-                  <SettingsGear />
+                  <SettingsGearShell />
                   <Link
                     href="/get-started"
                     className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"

@@ -16,6 +16,7 @@ import {
   savePostDraft,
   schedulePost,
 } from "@/lib/posts";
+import { resolveApiKey } from "@/lib/secrets";
 import { getOrCreateTenant } from "@/lib/tenant";
 
 export type PostActionState = {
@@ -56,6 +57,7 @@ export async function generatePost(
       ? formData.get("mediaUrl")?.toString() || undefined
       : undefined;
   const mediaTypeResult = mediaTypeSchema.safeParse(formData.get("mediaType"));
+  const apiKey = await resolveApiKey(tenant.id, "anthropic");
 
   try {
     const generated = await generatePostContent({
@@ -67,6 +69,7 @@ export async function generatePost(
       photoDescription,
       mediaUrl,
       mediaType: mediaTypeResult.success ? mediaTypeResult.data : null,
+      apiKey,
     });
 
     return {

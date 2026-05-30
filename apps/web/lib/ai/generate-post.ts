@@ -2,8 +2,10 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod";
 
-import { anthropicConfigured } from "@/lib/env";
 import type { SocialPlatform } from "@/lib/platforms";
+import { isSafeFetchUrl } from "@/lib/url-safety";
+
+const MAX_VISION_IMAGE_BYTES = 15 * 1024 * 1024;
 
 export type PostPlatform = SocialPlatform;
 
@@ -32,6 +34,8 @@ export type GeneratePostInput = {
   photoDescription?: string;
   mediaUrl?: string | null;
   mediaType?: "image" | "video" | "audio" | null;
+  /** Resolved Anthropic key (tenant key or env). Falls back to env when omitted. */
+  apiKey?: string;
 };
 
 function goalCTA(goal?: string | null) {
@@ -85,6 +89,11 @@ function buildFallbackPost(input: GeneratePostInput): GeneratedPostContent {
 }
 
 async function loadImagePart(mediaUrl: string) {
+  // SSRF guard: never let user-supplied URLs reach internal/loopback hosts.
+  if (!isSafeFetchUrl(mediaUrl)) {
+    return null;
+  }
+
   try {
     const response = await fetch(mediaUrl);
     if (!response.ok) {
@@ -96,7 +105,17 @@ async function loadImagePart(mediaUrl: string) {
       return null;
     }
 
-    const image = new Uint8Array(await response.arrayBuffer());
+    const declaredLength = Number(response.headers.get("content-length"));
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_VISION_IMAGE_BYTES) {
+      return null;
+    }
+
+    const buffer = await response.arrayBuffer();
+    if (buffer.byteLength > MAX_VISION_IMAGE_BYTES) {
+      return null;
+    }
+
+    const image = new Uint8Array(buffer);
     return { type: "image" as const, image, mediaType: mimeType };
   } catch {
     return null;
@@ -106,13 +125,13 @@ async function loadImagePart(mediaUrl: string) {
 export async function generatePostContent(
   input: GeneratePostInput,
 ): Promise<GeneratedPostContent> {
-  if (!anthropicConfigured) {
+  const apiKey = input.apiKey ?? process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
     return buildFallbackPost(input);
   }
 
-  const anthropic = createAnthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  const anthropic = createAnthropic({ apiKey });
 
   const platformGuidance =
     input.platform === "instagram"

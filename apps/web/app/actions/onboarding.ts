@@ -20,6 +20,7 @@ import {
 } from "@/lib/onboarding/constants";
 import { ensureUniqueTenantSlug, getOrCreateTenant } from "@/lib/tenant";
 import { slugify } from "@/lib/slug";
+import { isHttpUrl } from "@/lib/url-safety";
 
 const onboardingSchema = z.object({
   businessName: z.string().trim().min(2, "Business name is required"),
@@ -38,13 +39,22 @@ const onboardingSchema = z.object({
     "followers",
   ]),
   offerText: z.string().trim().min(10, "Describe your offer in one sentence"),
+  websiteUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => (value ? value : undefined))
+    .pipe(z.union([z.string().url().refine(isHttpUrl, "Use an http(s) URL"), z.undefined()])),
   logoUrl: z
     .string()
     .trim()
     .optional()
     .transform((value) => (value ? value : undefined))
-    .pipe(z.union([z.string().url(), z.undefined()])),
-  photoUrls: z.array(z.string().url()).max(6).default([]),
+    .pipe(z.union([z.string().url().refine(isHttpUrl, "Use an http(s) URL"), z.undefined()])),
+  photoUrls: z
+    .array(z.string().url().refine(isHttpUrl, "Use an http(s) URL"))
+    .max(6)
+    .default([]),
 });
 
 export type OnboardingActionState = {
@@ -74,6 +84,7 @@ export async function completeOnboarding(
     businessType: formData.get("businessType"),
     goal: formData.get("goal"),
     offerText: formData.get("offerText"),
+    websiteUrl: formData.get("websiteUrl") || undefined,
     logoUrl: formData.get("logoUrl") || undefined,
     photoUrls,
   });
@@ -107,96 +118,102 @@ export async function completeOnboarding(
   const publicSlug = "offer";
   const leadPageUrl = `${appUrl()}/p/${nextSlug}/${publicSlug}`;
 
-  await db
-    .update(tenants)
-    .set({
-      slug: nextSlug,
-      businessName: data.businessName,
-      businessType: data.businessType,
-      goal: data.goal,
-      offerText: data.offerText,
-      onboardingComplete: true,
-    })
-    .where(eq(tenants.id, tenant.id));
-
-  const existingBrandAssets = await db.query.brandAssets.findFirst({
-    where: eq(brandAssets.tenantId, tenant.id),
-  });
-
-  if (existingBrandAssets) {
-    await db
-      .update(brandAssets)
-      .set({
-        logoUrl: data.logoUrl || null,
-        photoUrls: data.photoUrls,
-      })
-      .where(eq(brandAssets.id, existingBrandAssets.id));
-  } else {
-    await db.insert(brandAssets).values({
-      tenantId: tenant.id,
-      logoUrl: data.logoUrl || null,
-      photoUrls: data.photoUrls,
-    });
-  }
-
-  const existingLeadPage = await db.query.leadPages.findFirst({
-    where: and(
-      eq(leadPages.tenantId, tenant.id),
-      eq(leadPages.publicSlug, publicSlug),
-    ),
-  });
-
-  if (existingLeadPage) {
-    await db
-      .update(leadPages)
-      .set({
-        template,
-        contentJson,
-        published: true,
-      })
-      .where(eq(leadPages.id, existingLeadPage.id));
-  } else {
-    await db.insert(leadPages).values({
-      tenantId: tenant.id,
-      template,
-      publicSlug,
-      contentJson,
-      published: true,
-    });
-  }
-
   const presets = buildAutoReplyPresets({
     businessType: data.businessType,
     businessName: data.businessName,
   });
 
-  for (const preset of presets) {
-    const existingPreset = await db.query.autoReplyPresets.findFirst({
+  // All onboarding writes go through one transaction so a partial failure
+  // doesn't leave a half-onboarded tenant (e.g. flipped onboardingComplete=true
+  // but no lead page / auto-reply presets).
+  await db.transaction(async (tx) => {
+    await tx
+      .update(tenants)
+      .set({
+        slug: nextSlug,
+        businessName: data.businessName,
+        businessType: data.businessType,
+        goal: data.goal,
+        offerText: data.offerText,
+        websiteUrl: data.websiteUrl || null,
+        onboardingComplete: true,
+      })
+      .where(eq(tenants.id, tenant.id));
+
+    const existingBrandAssets = await tx.query.brandAssets.findFirst({
+      where: eq(brandAssets.tenantId, tenant.id),
+    });
+
+    if (existingBrandAssets) {
+      await tx
+        .update(brandAssets)
+        .set({
+          logoUrl: data.logoUrl || null,
+          photoUrls: data.photoUrls,
+        })
+        .where(eq(brandAssets.id, existingBrandAssets.id));
+    } else {
+      await tx.insert(brandAssets).values({
+        tenantId: tenant.id,
+        logoUrl: data.logoUrl || null,
+        photoUrls: data.photoUrls,
+      });
+    }
+
+    const existingLeadPage = await tx.query.leadPages.findFirst({
       where: and(
-        eq(autoReplyPresets.tenantId, tenant.id),
-        eq(autoReplyPresets.presetKey, preset.presetKey),
+        eq(leadPages.tenantId, tenant.id),
+        eq(leadPages.publicSlug, publicSlug),
       ),
     });
 
-    if (existingPreset) {
-      await db
-        .update(autoReplyPresets)
+    if (existingLeadPage) {
+      await tx
+        .update(leadPages)
         .set({
+          template,
+          contentJson,
+          published: true,
+        })
+        .where(eq(leadPages.id, existingLeadPage.id));
+    } else {
+      await tx.insert(leadPages).values({
+        tenantId: tenant.id,
+        template,
+        publicSlug,
+        contentJson,
+        published: true,
+      });
+    }
+
+    for (const preset of presets) {
+      const existingPreset = await tx.query.autoReplyPresets.findFirst({
+        where: and(
+          eq(autoReplyPresets.tenantId, tenant.id),
+          eq(autoReplyPresets.presetKey, preset.presetKey),
+        ),
+      });
+
+      if (existingPreset) {
+        await tx
+          .update(autoReplyPresets)
+          .set({
+            enabled: preset.enabled,
+            keywords: preset.keywords,
+            messageTemplate: preset.messageTemplate,
+          })
+          .where(eq(autoReplyPresets.id, existingPreset.id));
+      } else {
+        await tx.insert(autoReplyPresets).values({
+          tenantId: tenant.id,
+          presetKey: preset.presetKey,
           enabled: preset.enabled,
           keywords: preset.keywords,
           messageTemplate: preset.messageTemplate,
-        })
-        .where(eq(autoReplyPresets.id, existingPreset.id));
-    } else {
-      await db.insert(autoReplyPresets).values({
-        tenantId: tenant.id,
-        presetKey: preset.presetKey,
-        enabled: preset.enabled,
-        keywords: preset.keywords,
-        messageTemplate: preset.messageTemplate,
-      });
+        });
+      }
     }
-  }
+  });
 
   revalidatePath("/get-started");
   revalidatePath("/leads");

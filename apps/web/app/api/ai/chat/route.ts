@@ -6,7 +6,8 @@ import {
   buildChatSystemPrompt,
   type StudioContext,
 } from "@/lib/ai/chat-context";
-import { anthropicConfigured, dbConfigured } from "@/lib/env";
+import { dbConfigured } from "@/lib/env";
+import { resolveApiKey } from "@/lib/secrets";
 import { getOrCreateTenant } from "@/lib/tenant";
 
 export const maxDuration = 30;
@@ -53,16 +54,16 @@ export async function POST(request: Request) {
 
   const context = await buildChatContext(tenant);
 
-  if (!anthropicConfigured) {
+  const apiKey = await resolveApiKey(tenant.id, "anthropic");
+
+  if (!apiKey) {
     const text = fallbackReply(userText, context);
     return new Response(text, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }
 
-  const anthropic = createAnthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  const anthropic = createAnthropic({ apiKey });
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-20250514"),

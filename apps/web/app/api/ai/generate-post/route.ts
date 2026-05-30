@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { generatePostContent } from "@/lib/ai/generate-post";
 import { dbConfigured } from "@/lib/env";
+import { resolveApiKey } from "@/lib/secrets";
 import { getOrCreateTenant } from "@/lib/tenant";
 
 const requestSchema = z.object({
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       goal: tenant.goal,
       platform: parsed.data.platform,
       photoDescription: parsed.data.photoDescription,
+      apiKey: await resolveApiKey(tenant.id, "anthropic"),
     });
 
     return NextResponse.json({ ok: true, post: generated });
