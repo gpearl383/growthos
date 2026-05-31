@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
-import { eq } from "@growthos/db";
+import { and, eq } from "@growthos/db";
 import { leads, tenants } from "@growthos/db";
 
 import { getDb } from "@/lib/db";
@@ -55,7 +55,10 @@ export const notifyNewLead = inngest.createFunction(
     const db = getDb();
 
     const lead = await db.query.leads.findFirst({
-      where: eq(leads.id, event.data.leadId),
+      where: and(
+        eq(leads.id, event.data.leadId),
+        eq(leads.tenantId, event.data.tenantId),
+      ),
     });
 
     if (!lead) {
