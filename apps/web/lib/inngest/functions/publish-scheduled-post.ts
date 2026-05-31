@@ -23,20 +23,38 @@ export const publishScheduledPosts = inngest.createFunction(
         continue;
       }
 
+      let platformPostId: string | undefined;
       try {
-        const platformPostId = await publishPost(claimed);
+        platformPostId = await publishPost(claimed);
+      } catch (error) {
+        // Publish failed — post is NOT live, safe to mark failed.
+        await markPostFailed(claimed.tenantId, claimed.id).catch(() => undefined);
+        results.push({
+          postId: claimed.id,
+          status: "failed",
+          error: error instanceof Error ? error.message : "Publish failed",
+        });
+        continue;
+      }
+
+      // Post is live on the platform. Record it — but if the DB update fails,
+      // do NOT mark the post as failed (it is published). Log for manual recovery.
+      try {
         await markPostPublished(claimed.tenantId, claimed.id, platformPostId);
         results.push({
           postId: claimed.id,
           status: "published",
           platformPostId,
         });
-      } catch (error) {
-        await markPostFailed(claimed.tenantId, claimed.id);
+      } catch (dbError) {
+        console.error(
+          `[publish] markPostPublished failed for post ${claimed.id} (platformPostId=${platformPostId}) — post is live but DB not updated. Manual recovery required.`,
+          dbError,
+        );
         results.push({
           postId: claimed.id,
-          status: "failed",
-          error: error instanceof Error ? error.message : "Publish failed",
+          status: "published_unconfirmed",
+          platformPostId,
         });
       }
     }
