@@ -2,7 +2,10 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { syncTenantFromClerkOrg } from "@/lib/tenant";
+
+const WEBHOOK_RATE_LIMIT = { max: 100, windowMs: 60_000 };
 
 type ClerkOrganizationEvent = {
   type: string;
@@ -14,6 +17,14 @@ type ClerkOrganizationEvent = {
 };
 
 export async function POST(request: Request) {
+  const limit = await checkRateLimit(`clerk-webhook:${getClientIp(request)}`, WEBHOOK_RATE_LIMIT);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Too many requests" }, {
+      status: 429,
+      headers: { "Retry-After": String(Math.ceil(limit.retryAfterMs / 1000)) },
+    });
+  }
+
   const secret = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!secret) {
