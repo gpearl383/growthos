@@ -106,6 +106,22 @@ async function hasAutoReplyBeenSent(
   return existing !== undefined;
 }
 
+async function hasWelcomeDmBeenSentToSender(
+  tenantId: string,
+  senderId: string,
+): Promise<boolean> {
+  const db = getDb();
+  const existing = await db.query.events.findFirst({
+    where: and(
+      eq(events.tenantId, tenantId),
+      eq(events.type, "dm_sent"),
+      sql`${events.metadata}->>'senderId' = ${senderId}`,
+      sql`${events.metadata}->>'presetKey' = 'welcome_dm'`,
+    ),
+  });
+  return existing !== undefined;
+}
+
 async function processCommentChange(input: {
   igAccountId: string;
   value: MetaCommentValue;
@@ -208,6 +224,10 @@ async function processMessagingEvent(input: {
 
   if (mid && await hasAutoReplyBeenSent(account.tenantId, "mid", mid)) {
     return { skipped: "duplicate_message" };
+  }
+
+  if (await hasWelcomeDmBeenSentToSender(account.tenantId, senderId)) {
+    return { skipped: "already_welcomed" };
   }
 
   const recentCount = await countRecentAutoReplies(account.tenantId);

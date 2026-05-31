@@ -37,7 +37,7 @@ Full per-area findings in §4–6.
 | H4 | Meta Graph API token passed as `?access_token=` query param — leaks into logs, traces, referrers | `apps/web/lib/meta/config.ts:167-168` | ✅ fixed — `graphRequest` and `fetchManagedPages` now pass token via `Authorization: Bearer` header |
 | H5 | OAuth callback resolves tenant from signed `state` only, never checks active Clerk session matches | `apps/web/app/api/meta/oauth/callback/route.ts:38` | ✅ fixed — callback now calls `getOrCreateTenant()` and rejects if session tenant ≠ state tenant |
 | H6 | Auto-replies never dedupe on `commentId`/`message.mid` — duplicate Meta webhook delivery sends duplicate DMs | `apps/web/lib/meta/webhooks.ts:154` | ✅ fixed — `hasAutoReplyBeenSent()` checks `events` for prior `dm_sent` with matching `commentId`/`mid` before sending |
-| H7 | DM auto-reply sends welcome on **every** inbound message, not just first contact — spam risk + burns budget | `apps/web/lib/meta/webhooks.ts:193` |
+| H7 | DM auto-reply sends welcome on **every** inbound message, not just first contact — spam risk + burns budget | `apps/web/lib/meta/webhooks.ts:193` | ✅ fixed — `hasWelcomeDmBeenSentToSender()` checks for a prior `welcome_dm` event to this sender before replying |
 | H8 | Scheduled-post status orphans at `publishing` if `markPostPublished()` fails — post is live externally but stuck in app | `apps/web/lib/inngest/functions/publish-scheduled-post.ts:27` |
 | H9 | `getAuthOrgId()` throws raw `Error("Not signed in")` — API routes return 500 instead of 401 JSON | `apps/web/lib/tenant.ts:19` |
 | H10 | Canva access token stored in global cookie, not tenant-keyed — switching orgs in same browser uses wrong tenant's token | `apps/web/app/api/canva/oauth/callback/route.ts:53` |
