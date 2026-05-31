@@ -135,7 +135,9 @@ export async function exchangeCodeForToken(code: string, redirectUri: string) {
     code,
   });
 
-  const response = await fetch(metaGraphUrl(`/oauth/access_token?${params}`));
+  const response = await fetch(metaGraphUrl(`/oauth/access_token?${params}`), {
+    signal: AbortSignal.timeout(30_000),
+  });
   const data = (await response.json()) as {
     access_token?: string;
     error?: { message: string };
@@ -156,7 +158,9 @@ export async function exchangeForLongLivedToken(shortLivedToken: string) {
     fb_exchange_token: shortLivedToken,
   });
 
-  const response = await fetch(metaGraphUrl(`/oauth/access_token?${params}`));
+  const response = await fetch(metaGraphUrl(`/oauth/access_token?${params}`), {
+    signal: AbortSignal.timeout(30_000),
+  });
   const data = (await response.json()) as {
     access_token?: string;
     expires_in?: number;
@@ -204,6 +208,7 @@ export async function graphRequest<T>(
       ...init?.headers,
       Authorization: `Bearer ${accessToken}`,
     },
+    signal: init?.signal ?? AbortSignal.timeout(30_000),
   });
 
   const data = (await response.json()) as T & {

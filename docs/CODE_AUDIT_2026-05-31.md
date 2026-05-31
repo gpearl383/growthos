@@ -79,25 +79,25 @@ Meta + TikTok config helpers no longer fall back to constants. They throw at mod
 - `apps/web/components/create/post-studio.tsx:316` — Save/Schedule have no pending guard; use `useFormStatus`.
 
 ### High
-- `apps/web/app/create/page.tsx:60` — no `loading.tsx` or `<Suspense>`; cold start is a blank stall.
+- `apps/web/app/create/page.tsx:60` — no `loading.tsx` or `<Suspense>`; cold start is a blank stall. ✅ fixed — `app/create/loading.tsx` added
 - `apps/web/components/create/media-panel.tsx:193` — delete dialog lacks focus trap + Escape handler.
 - `apps/web/components/create/post-studio.tsx:223` — `handleCopy` swallows clipboard rejection silently.
 - `apps/web/components/create/post-studio.tsx:104` — `handleUpload`/`handleDelete` `setState` after `fetch` without unmount guard.
-- `apps/web/components/flash-banner.tsx:19` — no `role="alert"`/`aria-live`; not announced to screen readers.
-- `apps/web/app/settings/connections/page.tsx:62` — unknown `?error=` values rendered verbatim (social-engineering risk).
-- `apps/web/app/create/page.tsx:144` — same issue for `?canva=` values.
+- `apps/web/components/flash-banner.tsx:19` — no `role="alert"`/`aria-live`; not announced to screen readers. ✅ fixed
+- `apps/web/app/settings/connections/page.tsx:62` — unknown `?error=` values rendered verbatim (social-engineering risk). ✅ fixed — strict `ERROR_LABELS` allowlist
+- `apps/web/app/create/page.tsx:144` — same issue for `?canva=` values. ✅ fixed — strict `CANVA_LABELS` allowlist
 
 ### Medium
-- No `error.tsx` anywhere — unexpected throws fall through to generic Next.js 500.
-- `apps/web/components/create/delete-draft-button.tsx:15` and `leads/delete-lead-button.tsx:16` use `window.confirm` (inaccessible on mobile).
-- `apps/web/components/create/copy-panel.tsx:63` — form labels lack `htmlFor`/`id` association.
-- `apps/web/components/create/media-panel.tsx:80` — hidden file input not programmatically associated with trigger button.
-- `apps/web/components/create/media-panel.tsx:124` — thumbnail buttons share same aria-label; selection color-only.
-- `apps/web/components/create/drafts-list.tsx:36` — active draft highlighted color-only (`aria-current` missing).
-- `apps/web/components/get-started/wizard.tsx:109` — step progress has no `aria-current="step"` / live region.
-- `apps/web/components/get-started/wizard.tsx:175` — type/goal tiles toggle via color only (`aria-pressed` missing).
-- `apps/web/components/ai-helper/chat.tsx:154` — chat input lacks label.
-- `apps/web/components/settings/api-keys-panel.tsx:105` — password inputs lack label.
+- No `error.tsx` anywhere — unexpected throws fall through to generic Next.js 500. ✅ fixed — global + 3 route-level error boundaries added
+- `apps/web/components/create/delete-draft-button.tsx:15` and `leads/delete-lead-button.tsx:16` use `window.confirm` (inaccessible on mobile). ✅ fixed — inline two-step confirm pattern
+- `apps/web/components/create/copy-panel.tsx:63` — form labels lack `htmlFor`/`id` association. ✅ fixed
+- `apps/web/components/create/media-panel.tsx:80` — hidden file input not programmatically associated with trigger button. ✅ fixed — `id`/`aria-controls` added
+- `apps/web/components/create/media-panel.tsx:124` — thumbnail buttons share same aria-label; selection color-only. ✅ fixed — unique `aria-label` per thumbnail
+- `apps/web/components/create/drafts-list.tsx:36` — active draft highlighted color-only (`aria-current` missing). ✅ fixed
+- `apps/web/components/get-started/wizard.tsx:109` — step progress has no `aria-current="step"` / live region. ✅ fixed
+- `apps/web/components/get-started/wizard.tsx:175` — type/goal tiles toggle via color only (`aria-pressed` missing). ✅ fixed
+- `apps/web/components/ai-helper/chat.tsx:154` — chat input lacks label. ✅ fixed — `sr-only` label added
+- `apps/web/components/settings/api-keys-panel.tsx:105` — password inputs lack label. ✅ fixed — `sr-only` labels added
 
 ### Low / nits
 - `apps/web/components/ai-helper/chat.tsx:122` — message keys use `${role}-${index}` (duplicates possible).
@@ -128,14 +128,14 @@ Meta + TikTok config helpers no longer fall back to constants. They throw at mod
 - See H1-H19 in §2
 
 ### Medium
-- `apps/web/lib/rate-limit.ts:12` — in-memory only; see H1.
-- `apps/web/app/api/ai/chat/route.ts:44` — body cast, not zod-parsed; unbounded `messages` length.
-- `apps/web/app/actions/posts.ts:103` — `mediaUrl` not URL-validated.
-- `apps/web/app/actions/posts.ts:184` — `scheduleGeneratedPost` returns silently on zod fail.
-- `apps/web/app/api/leads/route.ts:14` — `email` not `.email()`-validated.
-- `apps/web/app/api/media/upload/route.ts:44` — trusts client `file.type`.
-- External `fetch` calls have no `AbortSignal`/timeout across Meta, TikTok, Canva, OpenAI, ElevenLabs.
-- `apps/web/app/api/ai/generate-post/route.ts:14` — no `maxDuration` set.
+- `apps/web/lib/rate-limit.ts:12` — in-memory only; see H1. ✅ fixed (H1)
+- `apps/web/app/api/ai/chat/route.ts:44` — body cast, not zod-parsed; unbounded `messages` length. ✅ fixed — `chatBodySchema` with `.max(50)` + `.max(10_000)` per message
+- `apps/web/app/actions/posts.ts:103` — `mediaUrl` not URL-validated. ✅ fixed — `isSafeFetchUrl` guard added
+- `apps/web/app/actions/posts.ts:184` — `scheduleGeneratedPost` returns silently on zod fail. ✅ fixed — redirects with error
+- `apps/web/app/api/leads/route.ts:14` — `email` not `.email()`-validated. ✅ fixed
+- `apps/web/app/api/media/upload/route.ts:44` — trusts client `file.type`. ✅ fixed — MIME allowlist + 415 on mismatch
+- External `fetch` calls have no `AbortSignal`/timeout across Meta, TikTok, Canva, OpenAI, ElevenLabs. ✅ fixed — 30s/60s timeouts added to all external fetches
+- `apps/web/app/api/ai/generate-post/route.ts:14` — no `maxDuration` set. ✅ fixed — `maxDuration = 60`
 
 ### Low / nits
 - `apps/web/app/api/ai/generate-image/route.ts:39` — `request.json()` outside try/catch.

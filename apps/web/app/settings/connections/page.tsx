@@ -10,16 +10,15 @@ type ConnectionsPageProps = {
   searchParams: Promise<{ connected?: string; error?: string }>;
 };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  meta_not_configured:
-    "Add META_APP_ID and META_APP_SECRET to connect Instagram and Facebook.",
-  tiktok_not_configured:
-    "Add TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET to connect TikTok.",
-  invalid_callback: "Meta login did not complete. Try connecting again.",
-  invalid_state: "Your login session expired. Try connecting again.",
-  tenant_not_found: "Could not find your business account.",
-  no_pages_found:
-    "No Facebook Pages or Instagram business accounts were found on this Meta login.",
+const ERROR_LABELS: Record<string, string> = {
+  meta_not_configured: "Meta is not configured.",
+  tiktok_not_configured: "TikTok is not configured.",
+  invalid_callback: "OAuth callback was invalid.",
+  invalid_state: "OAuth state was invalid or expired.",
+  tenant_not_found: "Could not find your account.",
+  session_mismatch: "Session mismatch — please try again.",
+  no_pages_found: "No Facebook pages or Instagram accounts found.",
+  not_signed_in: "You must be signed in.",
 };
 
 export default async function ConnectionsPage({
@@ -60,7 +59,7 @@ export default async function ConnectionsPage({
   try {
     const accounts = await listSocialAccountsForTenant(tenant.id);
     const errorMessage = params.error
-      ? (ERROR_MESSAGES[params.error] ?? decodeURIComponent(params.error))
+      ? (ERROR_LABELS[params.error] ?? "An unknown error occurred.")
       : undefined;
 
     return (

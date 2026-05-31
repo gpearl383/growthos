@@ -14,8 +14,10 @@ const leadSubmissionSchema = z.object({
   email: z
     .string()
     .trim()
+    .email()
     .optional()
-    .transform((value) => (value ? value : undefined)),
+    .or(z.literal(""))
+    .transform((v) => v || undefined),
   phone: z
     .string()
     .trim()

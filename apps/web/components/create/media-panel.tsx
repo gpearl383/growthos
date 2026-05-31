@@ -79,6 +79,7 @@ export function MediaPanel({
         <div className="flex flex-wrap items-center gap-3">
           <input
             ref={inputRef}
+            id="media-file-input"
             type="file"
             accept="image/*,video/*"
             className="hidden"
@@ -94,6 +95,7 @@ export function MediaPanel({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
+            aria-controls="media-file-input"
           >
             {uploading ? "Uploading…" : "Upload media"}
           </Button>
@@ -108,7 +110,7 @@ export function MediaPanel({
 
         {assets.length > 0 ? (
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-            {assets.map((asset) => {
+            {assets.map((asset, index) => {
               const selected = asset.url === selectedUrl;
               const deleting = deletingUrl === asset.url;
               const canDelete = Boolean(asset.id);
@@ -126,7 +128,7 @@ export function MediaPanel({
                     onClick={() => onSelect(asset)}
                     disabled={deleting}
                     className="block w-full"
-                    aria-label="Select media"
+                    aria-label={asset.altText ?? `Media ${index + 1}`}
                   >
                     {asset.type === "video" ? (
                       <video

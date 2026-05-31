@@ -18,6 +18,7 @@ import {
 } from "@/lib/posts";
 import { resolveApiKey } from "@/lib/secrets";
 import { getOrCreateTenant } from "@/lib/tenant";
+import { isSafeFetchUrl } from "@/lib/url-safety";
 
 export type PostActionState = {
   error?: string;
@@ -57,6 +58,11 @@ export async function generatePost(
       ? formData.get("mediaUrl")?.toString() || undefined
       : undefined;
   const mediaTypeResult = mediaTypeSchema.safeParse(formData.get("mediaType"));
+
+  if (mediaUrl && !isSafeFetchUrl(mediaUrl)) {
+    return { error: "Invalid media URL." };
+  }
+
   const apiKey = await resolveApiKey(tenant.id, "anthropic");
 
   try {
@@ -182,6 +188,7 @@ export async function scheduleGeneratedPost(formData: FormData) {
     });
 
   if (!parsed.success) {
+    redirect("/create?error=schedule-invalid");
     return;
   }
 

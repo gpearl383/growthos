@@ -89,6 +89,7 @@ export async function exchangeTikTokCodeForToken(
       grant_type: "authorization_code",
       redirect_uri: redirectUri,
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   const data = (await response.json()) as {
@@ -118,6 +119,7 @@ export async function fetchTikTokUser(accessToken: string) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
+      signal: AbortSignal.timeout(30_000),
     },
   );
 
@@ -145,6 +147,7 @@ export async function tiktokApiRequest<T>(
       "Content-Type": "application/json; charset=UTF-8",
       ...init?.headers,
     },
+    signal: init?.signal ?? AbortSignal.timeout(30_000),
   });
 
   const data = (await response.json()) as T & {

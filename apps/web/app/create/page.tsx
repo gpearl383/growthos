@@ -24,6 +24,14 @@ type CreatePageProps = {
   }>;
 };
 
+const CANVA_LABELS: Record<string, string> = {
+  connected: "Canva connected.",
+  not_configured: "Canva is not configured.",
+  invalid_state: "Canva OAuth state was invalid.",
+  invalid_callback: "Canva OAuth callback was invalid.",
+  access_denied: "Canva access was denied.",
+};
+
 export default async function CreatePage({ searchParams }: CreatePageProps) {
   const params = await searchParams;
 
@@ -143,7 +151,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         ) : null}
         {params.canva && params.canva !== "connected" ? (
           <FlashBanner variant="error">
-            Canva connection issue: {params.canva.replace(/_/g, " ")}
+            {CANVA_LABELS[params.canva] ?? "Canva connection error."}
           </FlashBanner>
         ) : null}
 

@@ -60,8 +60,9 @@ export function CopyPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Platform</label>
+          <label htmlFor="copy-platform" className="text-sm font-medium">Platform</label>
           <select
+            id="copy-platform"
             value={platform}
             onChange={(event) => onChange("platform", event.target.value)}
             className={fieldClass}
@@ -75,8 +76,9 @@ export function CopyPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">Hook</label>
+          <label htmlFor="copy-hook" className="text-sm font-medium">Hook</label>
           <input
+            id="copy-hook"
             value={hook}
             onChange={(event) => onChange("hook", event.target.value)}
             placeholder="Attention-grabbing first line"
@@ -86,12 +88,13 @@ export function CopyPanel({
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Caption</label>
+            <label htmlFor="copy-caption" className="text-sm font-medium">Caption</label>
             <span className={counterClass(captionOver)}>
               {captionCount} / {rule.captionMax}
             </span>
           </div>
           <textarea
+            id="copy-caption"
             value={caption}
             onChange={(event) => onChange("caption", event.target.value)}
             placeholder="Write your caption…"
@@ -102,12 +105,13 @@ export function CopyPanel({
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Hashtags</label>
+            <label htmlFor="copy-hashtags" className="text-sm font-medium">Hashtags</label>
             <span className={counterClass(hashtagsOver)}>
               {hashtagCount} / {rule.hashtagMax} tags
             </span>
           </div>
           <input
+            id="copy-hashtags"
             value={hashtags}
             onChange={(event) => onChange("hashtags", event.target.value)}
             placeholder="#localbusiness #yourcity"
@@ -116,13 +120,14 @@ export function CopyPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium">
+          <label htmlFor="copy-alt-text" className="text-sm font-medium">
             Alt text{" "}
             <span className="font-normal text-slate-500">
               (image description for accessibility)
             </span>
           </label>
           <textarea
+            id="copy-alt-text"
             value={altText}
             onChange={(event) => onChange("altText", event.target.value)}
             placeholder="Describe the image for screen readers"

@@ -6,6 +6,8 @@ import { dbConfigured } from "@/lib/env";
 import { resolveApiKey } from "@/lib/secrets";
 import { requireTenant } from "@/lib/api";
 
+export const maxDuration = 60;
+
 const requestSchema = z.object({
   platform: z.enum(["instagram", "facebook"]),
   photoDescription: z.string().trim().optional(),

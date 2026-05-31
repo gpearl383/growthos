@@ -21,7 +21,7 @@ export function FlashBanner({
   children,
 }: FlashBannerProps) {
   return (
-    <Card className={styles[variant]}>
+    <Card className={styles[variant]} role="alert" aria-live="polite">
       <CardContent className="p-4 text-sm">{children}</CardContent>
     </Card>
   );

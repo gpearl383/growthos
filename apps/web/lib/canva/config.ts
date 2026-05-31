@@ -70,6 +70,7 @@ export async function exchangeCanvaCode(input: {
       redirect_uri: input.redirectUri,
       code_verifier: input.codeVerifier,
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   const data = (await response.json()) as CanvaTokenResponse & {
@@ -111,6 +112,7 @@ export async function createCanvaDesign(input: {
       },
       title: input.title,
     }),
+    signal: AbortSignal.timeout(30_000),
   });
 
   const data = (await response.json()) as {

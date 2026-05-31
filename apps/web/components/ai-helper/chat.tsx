@@ -155,7 +155,9 @@ export function AiHelperChat({
         }}
         className="flex gap-2"
       >
+        <label htmlFor="chat-input" className="sr-only">Message</label>
         <input
+          id="chat-input"
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Ask anything…"

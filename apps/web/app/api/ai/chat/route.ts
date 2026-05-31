@@ -1,5 +1,6 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { streamText } from "ai";
+import { z } from "zod";
 
 import {
   buildChatContext,
@@ -11,6 +12,20 @@ import { dbConfigured } from "@/lib/env";
 import { resolveApiKey } from "@/lib/secrets";
 
 export const maxDuration = 30;
+
+const chatBodySchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().max(10_000),
+      }),
+    )
+    .max(50)
+    .optional()
+    .default([]),
+  studioContext: z.any().optional(),
+});
 
 function fallbackReply(message: string, context: Awaited<ReturnType<typeof buildChatContext>>) {
   const normalized = message.toLowerCase();
@@ -42,12 +57,20 @@ export async function POST(request: Request) {
     return new Response("Complete onboarding first.", { status: 403 });
   }
 
-  const body = (await request.json()) as {
-    messages?: Array<{ role: "user" | "assistant"; content: string }>;
-    studioContext?: StudioContext;
-  };
-  const messages = body.messages ?? [];
-  const studioContext = body.studioContext ?? null;
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return new Response("Invalid JSON body.", { status: 400 });
+  }
+
+  const parsed = chatBodySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return new Response("Invalid request body.", { status: 400 });
+  }
+
+  const messages = parsed.data.messages;
+  const studioContext = (parsed.data.studioContext as StudioContext) ?? null;
   const lastUserMessage = [...messages]
     .reverse()
     .find((message) => message.role === "user");

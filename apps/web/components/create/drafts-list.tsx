@@ -33,6 +33,7 @@ export function DraftsList({ drafts, activeId }: DraftsListProps) {
           {drafts.map((draft) => (
             <li
               key={draft.id}
+              aria-current={draft.id === activeId ? "true" : undefined}
               className={`flex gap-4 rounded-md border p-4 ${
                 draft.id === activeId
                   ? "border-emerald-400 bg-emerald-50/50 dark:border-emerald-600 dark:bg-emerald-950/20"

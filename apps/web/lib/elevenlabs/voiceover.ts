@@ -22,6 +22,7 @@ export async function generateVoiceover(
         text,
         model_id: "eleven_multilingual_v2",
       }),
+      signal: AbortSignal.timeout(60_000),
     },
   );
 

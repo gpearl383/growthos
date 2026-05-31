@@ -113,7 +113,8 @@ export function GetStartedWizard({
             className={`h-2 flex-1 rounded-full ${
               index <= step ? "bg-emerald-600" : "bg-slate-200 dark:bg-slate-800"
             }`}
-            aria-hidden
+            aria-hidden={index !== step}
+            aria-current={index === step ? "step" : undefined}
           />
         ))}
       </div>
@@ -176,6 +177,7 @@ export function GetStartedWizard({
                       key={option.value}
                       type="button"
                       onClick={() => setBusinessType(option.value)}
+                      aria-pressed={businessType === option.value}
                       className={`rounded-lg border px-4 py-3 text-left transition-colors ${
                         businessType === option.value
                           ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30"
@@ -200,6 +202,7 @@ export function GetStartedWizard({
                   key={option.value}
                   type="button"
                   onClick={() => setGoal(option.value)}
+                  aria-pressed={goal === option.value}
                   className={`rounded-lg border px-4 py-3 text-left transition-colors ${
                     goal === option.value
                       ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30"

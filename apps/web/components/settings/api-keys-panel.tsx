@@ -102,7 +102,11 @@ function ProviderRow({ status }: { status: ProviderStatusView }) {
       <form action={formAction} className="space-y-2">
         <input type="hidden" name="provider" value={status.provider} />
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <label htmlFor={`api-key-${status.provider}`} className="sr-only">
+            {status.label} API key
+          </label>
           <input
+            id={`api-key-${status.provider}`}
             type="password"
             name="value"
             value={value}

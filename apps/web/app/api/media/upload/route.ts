@@ -9,6 +9,18 @@ export const maxDuration = 30;
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/quicktime",
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/wav",
+];
+
 export async function POST(request: Request) {
   if (!dbConfigured) {
     return NextResponse.json(
@@ -38,6 +50,13 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "File is too large. The maximum upload size is 50 MB." },
       { status: 413 },
+    );
+  }
+
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return NextResponse.json(
+      { error: "Unsupported file type." },
+      { status: 415 },
     );
   }
 
