@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import { clerkConfigured } from "@/lib/env";
 
@@ -13,13 +13,28 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/(.*)",
 ]);
 
+const isProd =
+  process.env.NODE_ENV === "production" ||
+  process.env.VERCEL_ENV === "production";
+
 export default clerkConfigured
   ? clerkMiddleware(async (auth, request) => {
       if (!isPublicRoute(request)) {
         await auth.protect();
       }
     })
-  : () => NextResponse.next();
+  : (request: NextRequest) => {
+      // Clerk is not configured. In production this is a misconfig — fail closed
+      // so a missing env var doesn't silently remove all auth. In local dev,
+      // pass through so the app works without Clerk credentials.
+      if (isProd && !isPublicRoute(request)) {
+        return NextResponse.json(
+          { error: "Authentication is not configured." },
+          { status: 503 },
+        );
+      }
+      return NextResponse.next();
+    };
 
 export const config = {
   matcher: [
