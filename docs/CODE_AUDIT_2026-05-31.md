@@ -35,7 +35,7 @@ Full per-area findings in §4–6.
 | H2 | `social_accounts` lacks `UNIQUE(platform, platform_user_id)` and `UNIQUE(tenant_id, platform)` — duplicate rows cause ambiguous webhook routing | `packages/db/src/schema.ts:208-226` | ✅ fixed — added `social_accounts_tenant_platform_uniq` and `social_accounts_platform_user_id_uniq` unique indexes in migration `0007` |
 | H3 | `brand_assets` lacks `UNIQUE(tenant_id)` — `findFirst()` can return arbitrary row when accidentally duplicated | `packages/db/src/schema.ts:96-106` | ✅ fixed — added `brand_assets_tenant_id_uniq` unique index in migration `0008` |
 | H4 | Meta Graph API token passed as `?access_token=` query param — leaks into logs, traces, referrers | `apps/web/lib/meta/config.ts:167-168` | ✅ fixed — `graphRequest` and `fetchManagedPages` now pass token via `Authorization: Bearer` header |
-| H5 | OAuth callback resolves tenant from signed `state` only, never checks active Clerk session matches | `apps/web/app/api/meta/oauth/callback/route.ts:38` |
+| H5 | OAuth callback resolves tenant from signed `state` only, never checks active Clerk session matches | `apps/web/app/api/meta/oauth/callback/route.ts:38` | ✅ fixed — callback now calls `getOrCreateTenant()` and rejects if session tenant ≠ state tenant |
 | H6 | Auto-replies never dedupe on `commentId`/`message.mid` — duplicate Meta webhook delivery sends duplicate DMs | `apps/web/lib/meta/webhooks.ts:154` |
 | H7 | DM auto-reply sends welcome on **every** inbound message, not just first contact — spam risk + burns budget | `apps/web/lib/meta/webhooks.ts:193` |
 | H8 | Scheduled-post status orphans at `publishing` if `markPostPublished()` fails — post is live externally but stuck in app | `apps/web/lib/inngest/functions/publish-scheduled-post.ts:27` |

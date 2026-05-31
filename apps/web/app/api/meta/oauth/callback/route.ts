@@ -1,8 +1,5 @@
-import { eq } from "@growthos/db";
-import { tenants } from "@growthos/db";
 import { redirect } from "next/navigation";
 
-import { getDb } from "@/lib/db";
 import { appUrl, dbConfigured, metaConfigured } from "@/lib/env";
 import {
   exchangeCodeForToken,
@@ -11,6 +8,7 @@ import {
   parseOAuthState,
 } from "@/lib/meta/config";
 import { upsertSocialAccount } from "@/lib/social-accounts";
+import { getOrCreateTenant } from "@/lib/tenant";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -34,13 +32,18 @@ export async function GET(request: Request) {
     redirect("/settings/connections?error=invalid_state");
   }
 
-  const db = getDb();
-  const tenant = await db.query.tenants.findFirst({
-    where: eq(tenants.id, parsedState.tenantId),
-  });
+  // Verify the active Clerk session belongs to the tenant in the state.
+  // Without this check a stolen/replayed callback URL could bind a victim's
+  // social account to a different tenant's session.
+  let tenant;
+  try {
+    tenant = await getOrCreateTenant();
+  } catch {
+    redirect("/settings/connections?error=not_signed_in");
+  }
 
-  if (!tenant) {
-    redirect("/settings/connections?error=tenant_not_found");
+  if (tenant.id !== parsedState.tenantId) {
+    redirect("/settings/connections?error=session_mismatch");
   }
 
   try {
