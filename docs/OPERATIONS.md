@@ -70,9 +70,9 @@ All env vars **must be declared in `turbo.json#globalEnv`** or Turborepo strips 
 
 ### Build-side env vars (Vercel)
 
-| Variable | Purpose |
-|---|---|
-| `VERCEL_FORCE_NO_BUILD_CACHE=1` | **Strongly recommended.** Disables the build cache that has caused repeated 250 MB function-size failures (see §5). Adds ~30–60s per build. |
+| Variable | Status | Purpose |
+|---|---|---|
+| `VERCEL_FORCE_NO_BUILD_CACHE=1` | ✅ Set (Production + Preview) as of 2026-05-30 | Disables the build cache that has caused repeated 250 MB function-size failures (see §5). Adds ~30–60s per build. **Do not remove without understanding §5A.** |
 
 ### Where to view/edit on Vercel
 
@@ -192,7 +192,7 @@ apps/web/.next  278.97 MB
 
 **Root cause:** Vercel restores `.next/cache` from prior deploys, and successive restores accumulate stale tracing artifacts. The `analytics.js` function (heaviest function due to importing `tenant.ts` + `analytics.ts` + Drizzle + Clerk) creeps over the 250 MB hard cap.
 
-**Permanent fix:** Set `VERCEL_FORCE_NO_BUILD_CACHE=1` env var.
+**Permanent fix:** Set `VERCEL_FORCE_NO_BUILD_CACHE=1` env var. **Already done** as of 2026-05-30 (Production + Preview).
 
 **One-off fix:** Dashboard → failed deploy → Redeploy with cache box unchecked.
 

@@ -37,7 +37,7 @@ DATABASE_URL='postgresql://postgres.igizzkhcwednwbhqztgh:<pwd>@aws-1-us-east-1.p
 
 The `analytics.js` serverless function sits ~5 MB under Vercel's hard 250 MB per-function limit. Build cache restores accumulate stale tracing artifacts and push it over.
 
-- **Set `VERCEL_FORCE_NO_BUILD_CACHE=1` env var on Vercel** as a permanent guard (one-time setup, may already be set — check before assuming).
+- **`VERCEL_FORCE_NO_BUILD_CACHE=1` is set on Production + Preview** as a permanent guard (since 2026-05-30). Do not remove it.
 - If a deploy fails with `Max serverless function size of 250 MB uncompressed reached`, do **Vercel dashboard → failed deploy → Redeploy without build cache**. This consistently succeeds.
 - **DO NOT** add direct `@clerk/nextjs/server` imports to `apps/web/app/page.tsx` or any widely-traced shared file unless cache is disabled — this has broken three deploys.
 - `outputFileTracingExcludes` for darwin/win32 binaries is a no-op (Vercel only installs Linux binaries).
