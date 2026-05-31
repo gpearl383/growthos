@@ -208,9 +208,16 @@ email, token-refresh jobs, and Meta App Review are still to do.
 
 ## Docs
 
+- **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)** — **live infra source of truth** — every URL, env var, integration status, runbook procedure, and known gotcha. Start here if you're operating the deployed app.
+- [`CLAUDE.md`](./CLAUDE.md) / [`AGENTS.md`](./AGENTS.md) — compact agent memory auto-loaded by Claude / Cursor / Codex sessions
 - [`docs/GROWTHOS_EXECUTIVE_SUMMARY.md`](./docs/GROWTHOS_EXECUTIVE_SUMMARY.md) — what it is + why
 - [`docs/GROWTHOS_REBUILD_SPEC.md`](./docs/GROWTHOS_REBUILD_SPEC.md) — full technical spec
-- [`docs/GROWTHOS_MVP_TECHNICAL_SPEC.md`](./docs/GROWTHOS_MVP_TECHNICAL_SPEC.md) — engineering spec
+- [`docs/GROWTHOS_MVP_TECHNICAL_SPEC.md`](./docs/GROWTHOS_MVP_TECHNICAL_SPEC.md) — original engineering spec
+
+## Deployed instance
+
+Currently live at **https://growthos-blond.vercel.app** (Vercel + Supabase + Clerk).
+Operational details and recovery procedures live in [`docs/OPERATIONS.md`](./docs/OPERATIONS.md).
 
 ## License
 

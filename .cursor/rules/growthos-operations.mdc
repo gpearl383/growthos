@@ -1,0 +1,43 @@
+---
+description: GrowthOS operational guardrails — must be loaded for every Cursor conversation in this repo
+alwaysApply: true
+---
+
+# GrowthOS — operational guardrails for Cursor
+
+Before making any code change in this repo, you must be aware of the following live-production facts and traps. The full runbook is in [`docs/OPERATIONS.md`](mdc:docs/OPERATIONS.md); a compact version is in [`CLAUDE.md`](mdc:CLAUDE.md). Always prefer reading those before guessing.
+
+## Live infrastructure (do not assume defaults)
+
+- **Production app:** https://growthos-blond.vercel.app
+- **Vercel project:** `growthos`, team `team_5QemapEKyI9T7c1BuMB4XUUT`
+- **Supabase prod:** ref `igizzkhcwednwbhqztgh` (region `aws-1-us-east-1`). **NOT visible to the Supabase MCP** — manage via dashboard SQL editor or `postgres-js`.
+- **GitHub:** `gpearl383/growthos`
+- **Clerk:** test instance (`pk_test_…`); `pk_live_` will not work on `vercel.app` domains.
+
+## Hard rules (violations have broken production)
+
+1. **Do NOT add `@clerk/nextjs/server` as a direct import in `apps/web/app/page.tsx` or other widely-traced shared files.** It pushed the `analytics.js` serverless function over Vercel's hard 250 MB size limit three deploys in a row. Prefer reusing `getOnboardingState()` (which already imports it transitively) or use a hardcoded `Link` inside `<SignedIn>` instead.
+
+2. **Every server env var consumed at build time MUST be listed in `turbo.json#globalEnv`.** Turborepo strips them otherwise, which silently flips `clerkConfigured` / `dbConfigured` to `false` during prerender.
+
+3. **Migrations are NOT auto-applied to remote DBs.** When you add a new file in `packages/db/migrations/`, also append the SQL to `scripts/supabase-catchup-migrations.sql` (keep it idempotent: `IF NOT EXISTS`, `EXCEPTION WHEN duplicate_object`). Apply to prod via `node scripts/apply-supabase-catchup.mjs` with `DATABASE_URL` set.
+
+4. **PGlite is local-dev only.** It's loaded via `eval("require")` in `packages/db/src/index.ts` to dodge NFT, and excluded in `apps/web/next.config.ts`. Don't unwind either.
+
+5. **Tenant scoping is non-negotiable.** Every query touching tenant data must filter by `tenantId` resolved through `getOrCreateTenant()`. Cross-tenant data leakage is the single biggest risk in a multi-tenant SaaS.
+
+6. **Never commit secrets.** Use Vercel env vars in prod, `apps/web/.env.local` (git-ignored) in dev.
+
+## Recovery procedures
+
+| Symptom | Action |
+|---|---|
+| Vercel deploy fails with `Max serverless function size of 250 MB` | Dashboard → failed deploy → Redeploy without cache. Or set `VERCEL_FORCE_NO_BUILD_CACHE=1` permanently. |
+| Production app shows "Clerk is not configured" amber banner despite env vars being set | Re-check `turbo.json#globalEnv` includes every Clerk var. Then trigger a fresh build. |
+| `Could not load your leads inbox` / `Failed query: select … from tenants` | Run `node scripts/apply-supabase-catchup.mjs` against the prod DATABASE_URL — missing migration columns. |
+| Onboarded user sees no nav links | Tenant's `onboarding_complete` is `false`. Toggle via `node scripts/toggle-onboarding.mjs true` locally, or update directly in Supabase for prod. |
+
+## When you're not sure
+
+Stop and read `docs/OPERATIONS.md` end-to-end. It has every URL, every env var, every integration's status, every known issue with its workaround. It is updated as the source of truth — if something there contradicts your memory, the doc is right.
