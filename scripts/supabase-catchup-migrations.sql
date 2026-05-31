@@ -92,3 +92,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS "social_accounts_tenant_platform_uniq"
 
 CREATE UNIQUE INDEX IF NOT EXISTS "social_accounts_platform_user_id_uniq"
   ON "social_accounts" ("platform", "platform_user_id");
+
+-- ---------- 0008: unique constraint on brand_assets (H3) --------------------
+-- Prevents duplicate rows that cause findFirst() to return an arbitrary row.
+CREATE UNIQUE INDEX IF NOT EXISTS "brand_assets_tenant_id_uniq"
+  ON "brand_assets" ("tenant_id");

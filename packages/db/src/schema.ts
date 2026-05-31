@@ -103,7 +103,9 @@ export const brandAssets = pgTable("brand_assets", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-});
+}, (table) => [
+  uniqueIndex("brand_assets_tenant_id_uniq").on(table.tenantId),
+]);
 
 export const leadPages = pgTable("lead_pages", {
   id: uuid("id").defaultRandom().primaryKey(),
