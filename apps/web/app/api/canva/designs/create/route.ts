@@ -7,7 +7,7 @@ import {
   PLATFORM_CANVAS_SIZE,
 } from "@/lib/canva/config";
 import { canvaConfigured, dbConfigured } from "@/lib/env";
-import { getOrCreateTenant } from "@/lib/tenant";
+import { requireTenant } from "@/lib/api";
 
 const bodySchema = z.object({
   platform: z.enum(["instagram", "facebook", "tiktok"]),
@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const tenant = await getOrCreateTenant();
+  const tenant = await requireTenant();
+  if (tenant instanceof Response) return tenant;
   if (!tenant.onboardingComplete) {
     return NextResponse.json(
       { error: "Complete onboarding first." },

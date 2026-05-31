@@ -5,7 +5,7 @@ import { generateVoiceover } from "@/lib/elevenlabs/voiceover";
 import { createMediaAsset } from "@/lib/media/assets";
 import { saveMediaBuffer } from "@/lib/media/storage";
 import { resolveApiKey } from "@/lib/secrets";
-import { getOrCreateTenant } from "@/lib/tenant";
+import { requireTenant } from "@/lib/api";
 
 export const maxDuration = 60;
 
@@ -17,7 +17,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const tenant = await getOrCreateTenant();
+  const tenant = await requireTenant();
+  if (tenant instanceof Response) return tenant;
   if (!tenant.onboardingComplete) {
     return NextResponse.json(
       { error: "Complete onboarding first." },

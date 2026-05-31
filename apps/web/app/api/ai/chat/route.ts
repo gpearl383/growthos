@@ -6,9 +6,9 @@ import {
   buildChatSystemPrompt,
   type StudioContext,
 } from "@/lib/ai/chat-context";
+import { requireTenant } from "@/lib/api";
 import { dbConfigured } from "@/lib/env";
 import { resolveApiKey } from "@/lib/secrets";
-import { getOrCreateTenant } from "@/lib/tenant";
 
 export const maxDuration = 30;
 
@@ -35,7 +35,8 @@ export async function POST(request: Request) {
     return new Response("Database is not configured.", { status: 503 });
   }
 
-  const tenant = await getOrCreateTenant();
+  const tenant = await requireTenant();
+  if (tenant instanceof Response) return tenant;
 
   if (!tenant.onboardingComplete) {
     return new Response("Complete onboarding first.", { status: 403 });

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { generatePostContent } from "@/lib/ai/generate-post";
 import { dbConfigured } from "@/lib/env";
 import { resolveApiKey } from "@/lib/secrets";
-import { getOrCreateTenant } from "@/lib/tenant";
+import { requireTenant } from "@/lib/api";
 
 const requestSchema = z.object({
   platform: z.enum(["instagram", "facebook"]),
@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const tenant = await getOrCreateTenant();
+  const tenant = await requireTenant();
+  if (tenant instanceof Response) return tenant;
 
   if (!tenant.onboardingComplete) {
     return NextResponse.json(

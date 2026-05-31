@@ -8,6 +8,13 @@ import { slugify, uniqueSlug } from "@/lib/slug";
 
 export type TenantRecord = typeof tenants.$inferSelect;
 
+export class AuthError extends Error {
+  constructor() {
+    super("Not signed in");
+    this.name = "AuthError";
+  }
+}
+
 export async function getAuthOrgId() {
   if (!clerkConfigured) {
     return "dev_local_org";
@@ -17,7 +24,7 @@ export async function getAuthOrgId() {
   const orgId = session.orgId ?? session.userId;
 
   if (!orgId) {
-    throw new Error("Not signed in");
+    throw new AuthError();
   }
 
   return orgId;
