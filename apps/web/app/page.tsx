@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Button } from "@growthos/ui/button";
 import {
   Card,
@@ -11,16 +10,7 @@ import {
 import { getOnboardingState } from "@/lib/onboarding-state";
 
 export default async function HomePage() {
-  const { onboardingComplete, signedIn } = await getOnboardingState();
-
-  // First-run flow: a signed-in user who hasn't finished the wizard has no
-  // sensible reason to sit on the marketing page. The signed-out header CTAs
-  // (Sign in / Start free trial) are hidden by Clerk's <SignedOut /> guard
-  // once they authenticate, so without this redirect they'd land here with
-  // no way forward. Send them straight to /get-started.
-  if (signedIn && !onboardingComplete) {
-    redirect("/get-started");
-  }
+  const { onboardingComplete } = await getOnboardingState();
 
   return (
     <div className="space-y-10">
@@ -39,15 +29,6 @@ export default async function HomePage() {
           <div className="flex flex-wrap gap-3">
             <Link href="/leads">
               <Button size="lg">View leads inbox</Button>
-            </Link>
-          </div>
-        ) : signedIn ? (
-          // Safety net: if a signed-in/not-onboarded user somehow bypasses the
-          // redirect above (e.g. browser back button, prefetched cache), still
-          // give them one visible next step.
-          <div className="flex flex-wrap gap-3">
-            <Link href="/get-started">
-              <Button size="lg">Finish setting up</Button>
             </Link>
           </div>
         ) : null}

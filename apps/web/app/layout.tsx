@@ -12,6 +12,7 @@ import Link from "next/link";
 
 import { AiHelperShell } from "@/components/ai-helper/shell";
 import { AppNavShell } from "@/components/app-nav-shell";
+import { OnboardingCtaShell } from "@/components/onboarding-cta-shell";
 import { SettingsGearShell } from "@/components/settings-gear-shell";
 import { clerkConfigured } from "@/lib/env";
 import "./globals.css";
@@ -73,6 +74,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     </SignUpButton>
                   </SignedOut>
                   <SignedIn>
+                    <OnboardingCtaShell />
                     <SettingsGearShell />
                     <UserButton afterSignOutUrl="/" />
                   </SignedIn>
