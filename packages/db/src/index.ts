@@ -68,14 +68,15 @@ function getRemoteClient(databaseUrl: string) {
   return remoteClient;
 }
 
-export function createDb(databaseUrl = process.env.DATABASE_URL) {
+type SchemaDb = ReturnType<typeof drizzlePostgres<typeof schema>>;
+
+export function createDb(databaseUrl = process.env.DATABASE_URL): SchemaDb {
   if (useLocalDatabase()) {
     const { drizzle } = dynRequire<{ drizzle: DrizzlePgliteFn }>(
       "drizzle-orm/pglite",
     );
-    return drizzle(getLocalClient(), { schema }) as ReturnType<
-      typeof drizzlePostgres
-    >;
+    // Cast preserves the schema generic so callers keep typed `db.query.*`.
+    return drizzle(getLocalClient(), { schema }) as unknown as SchemaDb;
   }
 
   if (!databaseUrl) {
