@@ -1,4 +1,4 @@
-import { eq } from "@growthos/db";
+import { and, eq } from "@growthos/db";
 import { brandAssets } from "@growthos/db";
 
 import { getDb } from "@/lib/db";
@@ -26,7 +26,7 @@ export async function setBrandPhotoUrls(tenantId: string, urls: string[]) {
     await db
       .update(brandAssets)
       .set({ photoUrls: urls })
-      .where(eq(brandAssets.id, existing.id));
+      .where(and(eq(brandAssets.id, existing.id), eq(brandAssets.tenantId, tenantId)));
     return;
   }
 

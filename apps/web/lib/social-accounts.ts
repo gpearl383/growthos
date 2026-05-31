@@ -63,7 +63,7 @@ export async function upsertSocialAccount(input: {
         lastError: null,
         updatedAt: new Date(),
       })
-      .where(eq(socialAccounts.id, existing.id))
+      .where(and(eq(socialAccounts.id, existing.id), eq(socialAccounts.tenantId, input.tenantId)))
       .returning();
 
     return updated;

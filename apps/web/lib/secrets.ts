@@ -106,7 +106,7 @@ export async function setApiKey(
     await db
       .update(tenantSecrets)
       .set({ valueEnc, last4, updatedAt: new Date() })
-      .where(eq(tenantSecrets.id, existing.id));
+      .where(and(eq(tenantSecrets.id, existing.id), eq(tenantSecrets.tenantId, tenantId)));
     return;
   }
 
