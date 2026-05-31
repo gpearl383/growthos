@@ -175,11 +175,12 @@ export async function exchangeForLongLivedToken(shortLivedToken: string) {
 
 export async function fetchManagedPages(userAccessToken: string) {
   const params = new URLSearchParams({
-    access_token: userAccessToken,
     fields: "id,name,access_token,instagram_business_account",
   });
 
-  const response = await fetch(metaGraphUrl(`/me/accounts?${params}`));
+  const response = await fetch(metaGraphUrl(`/me/accounts?${params}`), {
+    headers: { Authorization: `Bearer ${userAccessToken}` },
+  });
   const data = (await response.json()) as {
     data?: MetaPageAccount[];
     error?: { message: string };
@@ -197,11 +198,13 @@ export async function graphRequest<T>(
   accessToken: string,
   init?: RequestInit,
 ) {
-  const separator = path.includes("?") ? "&" : "?";
-  const response = await fetch(
-    metaGraphUrl(`${path}${separator}access_token=${accessToken}`),
-    init,
-  );
+  const response = await fetch(metaGraphUrl(path), {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   const data = (await response.json()) as T & {
     error?: { message: string };
