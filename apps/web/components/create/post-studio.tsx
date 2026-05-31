@@ -1,7 +1,26 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { Button } from "@growthos/ui/button";
+
+function SaveDraftButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="secondary" disabled={disabled || pending}>
+      {pending ? "Saving…" : "Save draft"}
+    </Button>
+  );
+}
+
+function SchedulePostButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="secondary" disabled={disabled || pending}>
+      {pending ? "Scheduling…" : "Schedule post"}
+    </Button>
+  );
+}
 import {
   Card,
   CardContent,
@@ -322,9 +341,7 @@ export function PostStudio({
                 <input type="hidden" name="mediaUrl" value={mediaUrl} />
                 <input type="hidden" name="mediaType" value={mediaType ?? ""} />
                 <input type="hidden" name="audioUrl" value={audioUrl} />
-                <Button type="submit" variant="secondary" disabled={!canSave}>
-                  Save draft
-                </Button>
+                <SaveDraftButton disabled={!canSave} />
               </form>
 
               <Button
@@ -397,13 +414,7 @@ export function PostStudio({
                   posts publish automatically once you connect it in Settings.
                 </p>
               ) : null}
-              <Button
-                type="submit"
-                variant="secondary"
-                disabled={!canSchedule || !scheduledAt || hasBlockingErrors}
-              >
-                Schedule post
-              </Button>
+              <SchedulePostButton disabled={!canSchedule || !scheduledAt || hasBlockingErrors} />
               {!canSchedule ? (
                 <p className="text-xs text-slate-500">
                   Add a caption first — scheduled posts can&apos;t publish

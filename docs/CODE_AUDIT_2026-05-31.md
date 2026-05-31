@@ -48,8 +48,8 @@ Full per-area findings in §4–6.
 | H15 | Several `update`/`delete` queries on tenant tables filter by row `id` only, not `tenantId` (defense-in-depth gap) | `apps/web/lib/secrets.ts:109`, `apps/web/lib/brand.ts:29`, `apps/web/lib/social-accounts.ts:66` | ✅ fixed — all three UPDATE queries now filter by both `id` AND `tenantId` |
 | H16 | `notify-new-lead` Inngest job loads by `leadId` only, ignoring `event.data.tenantId` — forged event could route lead-notification emails | `apps/web/lib/inngest/functions/notify-new-lead.ts:57-59` | ✅ fixed — lead query now filters by both `leadId` AND `tenantId` from event data |
 | H17 | Blob uploads use `access: "public"` — URLs world-readable. Acceptable for post media (designed to be public) but risky for any future "private" use | `apps/web/lib/media/storage.ts:109` |
-| H18 | No `<form>` pending guard on Save draft + Schedule post — double-clicks fire duplicate server actions | `apps/web/components/create/post-studio.tsx:316` |
-| H19 | `ai-helper/chat.tsx` `sendMessage` reads stale `messages` from closure — rapid sends drop earlier turns | `apps/web/components/ai-helper/chat.tsx:66` |
+| H18 | No `<form>` pending guard on Save draft + Schedule post — double-clicks fire duplicate server actions | `apps/web/components/create/post-studio.tsx:316` | ✅ fixed — save and schedule forms now use `useActionState`; buttons disabled + show "Saving…"/"Scheduling…" while pending |
+| H19 | `ai-helper/chat.tsx` `sendMessage` reads stale `messages` from closure — rapid sends drop earlier turns | `apps/web/components/ai-helper/chat.tsx:66` | ✅ fixed — `messagesRef` keeps a current pointer to messages state; `sendMessage` reads from ref instead of closure |
 
 ---
 

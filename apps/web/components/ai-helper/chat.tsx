@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@growthos/ui/button";
 import {
@@ -51,6 +51,10 @@ export function AiHelperChat({
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: greeting },
   ]);
+  // Ref keeps sendMessage from reading a stale closure value when state updates
+  // haven't flushed yet (e.g. a starter button clicked right after a reply lands).
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   // The /create page renders its own embedded copilot, so suppress the FAB there.
   if (variant === "floating" && pathname?.startsWith("/create")) {
@@ -64,7 +68,7 @@ export function AiHelperChat({
     }
 
     const nextMessages: ChatMessage[] = [
-      ...messages,
+      ...messagesRef.current,
       { role: "user", content: trimmed },
     ];
     setMessages(nextMessages);
