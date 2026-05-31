@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   }
 
   const ip = getClientIp(request);
-  const limit = checkRateLimit(`leads:${ip}`, LEAD_RATE_LIMIT);
+  const limit = await checkRateLimit(`leads:${ip}`, LEAD_RATE_LIMIT);
 
   if (!limit.ok) {
     const retryAfterSec = Math.max(1, Math.ceil(limit.retryAfterMs / 1000));

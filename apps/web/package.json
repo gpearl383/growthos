@@ -17,6 +17,8 @@
     "@clerk/nextjs": "^6.22.0",
     "@growthos/db": "workspace:*",
     "@growthos/ui": "workspace:*",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^2.4.0",
     "ai": "^6.0.192",
     "inngest": "^3.39.2",

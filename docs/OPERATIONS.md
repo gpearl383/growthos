@@ -70,6 +70,7 @@ All env vars **must be declared in `turbo.json#globalEnv`** or Turborepo strips 
 | `META_APP_ID` + `META_APP_SECRET` + `META_WEBHOOK_VERIFY_TOKEN` | Instagram/Facebook OAuth + webhooks at `/api/meta/*` | OAuth start route returns 503. |
 | `TIKTOK_CLIENT_KEY` + `TIKTOK_CLIENT_SECRET` | TikTok OAuth + publish | OAuth route returns 503. |
 | `CANVA_CLIENT_ID` + `CANVA_CLIENT_SECRET` | Canva Connect (design import) | Canva button hidden in Post Studio. |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | `/api/leads` rate limiter | Falls back to in-memory (single-instance, no real enforcement). **Must be set in prod** for distributed rate limiting. Provision via Vercel Marketplace → Upstash Redis. |
 
 ### Build-side env vars (Vercel)
 
@@ -101,6 +102,7 @@ Vercel masks values after save (shows `••••••••`) — this is ex
 | Meta (IG/FB) | ⏳ Not wired | Requires Meta App + App Review for `instagram_basic` / `pages_show_list` / `instagram_manage_comments` |
 | TikTok | ⏳ Not wired | Requires TikTok Login Kit + Content Posting API approval |
 | Canva Connect | ⏳ Not wired | Requires Canva developer app |
+| Upstash Redis | ⏳ Not wired | Needed for distributed rate limiting on `/api/leads`. Falls back to in-memory until provisioned. Provision: Vercel dashboard → Storage → Create → Upstash Redis, then link to project. |
 
 ---
 

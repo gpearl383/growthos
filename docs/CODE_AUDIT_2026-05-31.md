@@ -31,7 +31,7 @@ Full per-area findings in §4–6.
 
 | # | Finding | Location |
 |---|---|---|
-| H1 | In-memory rate limiter resets per serverless instance — provides **no actual protection** on Vercel multi-instance prod | `apps/web/lib/rate-limit.ts:12` |
+| H1 | ~~In-memory rate limiter resets per serverless instance — provides **no actual protection** on Vercel multi-instance prod~~ | `apps/web/lib/rate-limit.ts` | ✅ fixed — replaced with Upstash `slidingWindow` via `@upstash/ratelimit`; in-memory fallback only when `UPSTASH_REDIS_REST_URL` absent (local dev). Provision Upstash in Vercel dashboard to activate in prod. |
 | H2 | `social_accounts` lacks `UNIQUE(platform, platform_user_id)` and `UNIQUE(tenant_id, platform)` — duplicate rows cause ambiguous webhook routing | `packages/db/src/schema.ts:208-226` |
 | H3 | `brand_assets` lacks `UNIQUE(tenant_id)` — `findFirst()` can return arbitrary row when accidentally duplicated | `packages/db/src/schema.ts:96-106` |
 | H4 | Meta Graph API token passed as `?access_token=` query param — leaks into logs, traces, referrers | `apps/web/lib/meta/config.ts:167-168` |
