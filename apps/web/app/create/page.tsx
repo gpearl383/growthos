@@ -123,6 +123,18 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
             Pick a date and time in the future to schedule this post.
           </FlashBanner>
         ) : null}
+        {params.error === "draft-empty" ? (
+          <FlashBanner variant="error">
+            Nothing to save yet — add a caption, hook, hashtags, or upload
+            media first.
+          </FlashBanner>
+        ) : null}
+        {params.error === "draft-invalid" ? (
+          <FlashBanner variant="error">
+            Couldn&apos;t save that draft. Try again, or refresh the page if it
+            keeps failing.
+          </FlashBanner>
+        ) : null}
         {params.canva === "connected" ? (
           <FlashBanner>
             Canva connected. Use &quot;Open Canva editor&quot; to design your

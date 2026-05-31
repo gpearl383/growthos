@@ -69,7 +69,10 @@ export function DraftsList({ drafts, activeId }: DraftsListProps) {
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
                   {draft.hook ? `${draft.hook} — ` : ""}
-                  {draft.caption}
+                  {draft.caption ||
+                    (draft.hook
+                      ? ""
+                      : "(no copy yet — resume to add a caption)")}
                 </p>
                 {draft.scheduledAt ? (
                   <p className="mt-2 text-xs text-slate-500">

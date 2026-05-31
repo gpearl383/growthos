@@ -235,7 +235,15 @@ export function PostStudio({
   }
 
   const platformConnected = connected[platform];
-  const canSave = caption.trim().length > 0;
+  // A draft is saveable as soon as the user has *anything* worth coming back
+  // to — media, a hook, a caption, or hashtags. We keep scheduling stricter
+  // (caption + scheduledAt) since that's an actual publish.
+  const canSave =
+    caption.trim().length > 0 ||
+    hook.trim().length > 0 ||
+    hashtags.trim().length > 0 ||
+    mediaUrl.length > 0;
+  const canSchedule = caption.trim().length > 0;
   const validation = validatePost({
     platform,
     caption,
@@ -323,10 +331,17 @@ export function PostStudio({
                 type="button"
                 variant="outline"
                 onClick={handleCopy}
-                disabled={!canSave}
+                disabled={!canSchedule}
               >
                 Copy post
               </Button>
+
+              {!canSave ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Add a caption, hook, hashtags, or upload media to save a
+                  draft.
+                </p>
+              ) : null}
             </div>
 
             {copyMessage ? (
@@ -385,11 +400,16 @@ export function PostStudio({
               <Button
                 type="submit"
                 variant="secondary"
-                disabled={!canSave || !scheduledAt || hasBlockingErrors}
+                disabled={!canSchedule || !scheduledAt || hasBlockingErrors}
               >
                 Schedule post
               </Button>
-              {hasBlockingErrors ? (
+              {!canSchedule ? (
+                <p className="text-xs text-slate-500">
+                  Add a caption first — scheduled posts can&apos;t publish
+                  empty.
+                </p>
+              ) : hasBlockingErrors ? (
                 <p className="text-xs text-slate-500">
                   Fix the issues above before scheduling.
                 </p>

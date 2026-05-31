@@ -90,11 +90,15 @@ export async function saveGeneratedPost(formData: FormData) {
     return;
   }
 
+  // A draft is a work-in-progress, not a publishable post. Allow saving with
+  // any meaningful piece filled in — media, hook, caption, or hashtags. The
+  // platform validator + scheduling action enforce the stricter "is this
+  // actually ready to publish" rules at the right moment.
   const parsed = z
     .object({
       platform: platformSchema,
       hook: z.string().trim().optional(),
-      caption: z.string().trim().min(1),
+      caption: z.string().trim().optional(),
       hashtags: z.string().trim().optional(),
       mediaUrl: z.string().trim().optional(),
       altText: z.string().trim().optional(),
@@ -113,6 +117,18 @@ export async function saveGeneratedPost(formData: FormData) {
     });
 
   if (!parsed.success) {
+    redirect("/create?error=draft-invalid");
+    return;
+  }
+
+  const hasContent =
+    Boolean(parsed.data.caption) ||
+    Boolean(parsed.data.hook) ||
+    Boolean(parsed.data.mediaUrl) ||
+    Boolean(parsed.data.hashtags);
+
+  if (!hasContent) {
+    redirect("/create?error=draft-empty");
     return;
   }
 
@@ -122,7 +138,9 @@ export async function saveGeneratedPost(formData: FormData) {
     tenantId: tenant.id,
     platform: parsed.data.platform,
     hook: parsed.data.hook,
-    caption: parsed.data.caption,
+    // posts.caption is NOT NULL at the DB level, but empty string satisfies
+    // that — keeps drafts truly partial without a migration.
+    caption: parsed.data.caption ?? "",
     hashtags: parsed.data.hashtags,
     mediaUrl: parsed.data.mediaUrl,
     altText: parsed.data.altText,
