@@ -221,8 +221,9 @@ export const socialAccounts = pgTable("social_accounts", {
     .notNull(),
 }, (table) => [
   index("social_accounts_tenant_id_idx").on(table.tenantId),
-  index("social_accounts_tenant_platform_idx").on(table.tenantId, table.platform),
+  uniqueIndex("social_accounts_tenant_platform_uniq").on(table.tenantId, table.platform),
   index("social_accounts_platform_user_id_idx").on(table.platformUserId),
+  uniqueIndex("social_accounts_platform_user_id_uniq").on(table.platform, table.platformUserId),
 ]);
 
 export const autoReplyPresets = pgTable("auto_reply_presets", {

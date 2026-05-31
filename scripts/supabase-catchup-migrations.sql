@@ -82,3 +82,13 @@ ALTER TYPE "post_status" ADD VALUE IF NOT EXISTS 'publishing';
 
 -- ---------- 0006: optional business website URL on tenants ------------------
 ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "website_url" text;
+
+-- ---------- 0007: unique constraints on social_accounts (H2) ----------------
+-- One connected account per platform per tenant; one tenant per platform user.
+DROP INDEX IF EXISTS "social_accounts_tenant_platform_idx";
+
+CREATE UNIQUE INDEX IF NOT EXISTS "social_accounts_tenant_platform_uniq"
+  ON "social_accounts" ("tenant_id", "platform");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "social_accounts_platform_user_id_uniq"
+  ON "social_accounts" ("platform", "platform_user_id");
