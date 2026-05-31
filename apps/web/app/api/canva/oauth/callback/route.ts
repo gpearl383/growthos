@@ -37,7 +37,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(createUrl("/create?canva=invalid_state"));
   }
 
-  if (!parseSignedOAuthState(state, signingSecret())) {
+  const parsedState = parseSignedOAuthState(state, signingSecret());
+  if (!parsedState) {
     return NextResponse.redirect(createUrl("/create?canva=invalid_state"));
   }
 
@@ -50,7 +51,8 @@ export async function GET(request: Request) {
     });
 
     const response = NextResponse.redirect(createUrl("/create?canva=connected"));
-    response.cookies.set("canva_access_token", token.access_token, {
+    // Key by tenantId so switching orgs in the same browser doesn't bleed tokens.
+    response.cookies.set(`canva_access_token_${parsedState.tenantId}`, token.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

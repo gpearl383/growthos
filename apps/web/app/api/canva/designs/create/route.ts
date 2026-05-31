@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   }
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("canva_access_token")?.value;
+  const accessToken = cookieStore.get(`canva_access_token_${tenant.id}`)?.value;
 
   if (!accessToken) {
     return NextResponse.json(
