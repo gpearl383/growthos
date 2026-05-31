@@ -48,8 +48,34 @@ export const canvaConfigured = Boolean(
   process.env.CANVA_CLIENT_ID && process.env.CANVA_CLIENT_SECRET,
 );
 
+// Audit finding C4 (2026-05-31): previously fell back to a hardcoded constant.
+// If META_WEBHOOK_VERIFY_TOKEN is unset in production, anyone who knows the
+// constant can pass Meta's webhook subscription challenge and register a
+// malicious webhook against the app. Now we throw in production and only
+// allow the constant in local dev (with a one-time warning).
+let warnedAboutVerifyToken = false;
 export function metaWebhookVerifyToken() {
-  return process.env.META_WEBHOOK_VERIFY_TOKEN ?? "growthos-dev-verify";
+  const real = process.env.META_WEBHOOK_VERIFY_TOKEN;
+  if (real) {
+    return real;
+  }
+
+  const isProd =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production";
+  if (isProd) {
+    throw new Error(
+      "META_WEBHOOK_VERIFY_TOKEN is required in production — refusing to use a fallback.",
+    );
+  }
+
+  if (!warnedAboutVerifyToken) {
+    console.warn(
+      "[meta] META_WEBHOOK_VERIFY_TOKEN is unset; using insecure local-dev fallback. Set the real value before deploying.",
+    );
+    warnedAboutVerifyToken = true;
+  }
+  return "growthos-dev-verify";
 }
 
 export function appUrl() {

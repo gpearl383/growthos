@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import { dirname, extname, join } from "node:path";
+import { dirname, extname, join, resolve, sep } from "node:path";
 
 import { del as blobDel, put as blobPut } from "@vercel/blob";
 
@@ -53,10 +53,36 @@ export function getTenantUploadsDir(tenantId: string) {
   return join(getUploadsRoot(), tenantId);
 }
 
+// Throws on any filename that would escape the tenant directory: empty
+// strings, NUL bytes, path separators, `.` / `..` relative components, or
+// anything that — after resolution — ends up outside the tenant root. Audit
+// finding C1 (2026-05-31) was that the previous regex strip didn't catch
+// `..`, so a crafted filename could be joined into the parent uploads dir.
 export function getMediaFilePath(tenantId: string, filename: string) {
-  // Strip any path separators to prevent traversal outside the tenant folder.
-  const safeName = filename.replace(/[/\\]/g, "");
-  return join(getTenantUploadsDir(tenantId), safeName);
+  if (
+    !filename ||
+    filename === "." ||
+    filename === ".." ||
+    filename.includes("/") ||
+    filename.includes("\\") ||
+    filename.includes("\0")
+  ) {
+    throw new Error("Invalid filename.");
+  }
+
+  const tenantRoot = resolve(getTenantUploadsDir(tenantId));
+  const candidate = resolve(tenantRoot, filename);
+
+  // Defense-in-depth — even though we rejected separators above, double-check
+  // the resolved path is strictly under the tenant root.
+  if (
+    candidate !== tenantRoot &&
+    !candidate.startsWith(tenantRoot + sep)
+  ) {
+    throw new Error("Invalid filename.");
+  }
+
+  return candidate;
 }
 
 export function mediaFileUrl(tenantId: string, filename: string) {

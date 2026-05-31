@@ -71,6 +71,22 @@ A second project (`rbgdovtegoawrqpllppe`) IS visible to the MCP but is empty / u
 - Idempotent migrations only (use `IF NOT EXISTS`, `ADD VALUE IF NOT EXISTS`, `EXCEPTION WHEN duplicate_object`).
 - Tone in commit messages: explain the *why*, not the *what*. Wrap at ~72 chars.
 
+## Documentation currency rule (non-negotiable)
+
+When you change anything in the categories below, you MUST update the corresponding doc in the same commit. No exceptions — stale docs are how the project loses its memory.
+
+| You changed | Update this |
+|---|---|
+| Env vars (added, removed, scope changed on Vercel) | `docs/OPERATIONS.md` §2 + `apps/web/.env.local.example` + `turbo.json#globalEnv` |
+| Vercel project/store/integration (provisioning, linking) | `docs/OPERATIONS.md` §1 + §3 |
+| Supabase schema (any new migration) | `packages/db/migrations/NNNN_*.sql` + append to `scripts/supabase-catchup-migrations.sql` (idempotent) + bump references in `docs/OPERATIONS.md` if behavior changed |
+| Storage backend, auth flow, OAuth provider | `docs/OPERATIONS.md` §5 (new known-issue / architecture-note entry) |
+| Recovery procedure (e.g. how to redeploy without cache) | `docs/OPERATIONS.md` §4 |
+| Security posture (fix from audit, new attack-surface mitigation) | `docs/CODE_AUDIT_2026-05-31.md` — mark the finding `✅ fixed in <commit>` |
+| Anything that future you/an agent would benefit from knowing | Find the closest existing doc; if none fits, add a new section to `OPERATIONS.md` |
+
+The git commit message should call out the doc update explicitly so it's visible in `git log`.
+
 ## When in doubt
 
-Read **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)** — full runbook, every URL, every env var, every integration's status, all known issues with their workarounds.
+Read **[`docs/OPERATIONS.md`](./docs/OPERATIONS.md)** — full runbook, every URL, every env var, every integration's status, all known issues with their workarounds. Then **[`docs/CODE_AUDIT_2026-05-31.md`](./docs/CODE_AUDIT_2026-05-31.md)** — open findings, severity, what's fixed.

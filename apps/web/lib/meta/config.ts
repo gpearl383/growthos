@@ -41,8 +41,34 @@ export function metaOAuthUrl(input: {
   return `https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth?${params.toString()}`;
 }
 
+// Audit finding C3 (2026-05-31): previously fell back to a hardcoded constant
+// when META_APP_SECRET was unset, which lets an attacker who knows the
+// constant forge `state` and bind a victim's tenant to their Meta account.
+// In production we now refuse to sign at all. Local dev keeps the constant
+// behind a one-time warning so the OAuth flow still works without secrets.
+let warnedAboutSigningFallback = false;
 function signingSecret() {
-  return process.env.META_APP_SECRET ?? "growthos-dev-meta-secret";
+  const real = process.env.META_APP_SECRET;
+  if (real) {
+    return real;
+  }
+
+  const isProd =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production";
+  if (isProd) {
+    throw new Error(
+      "META_APP_SECRET is required in production — refusing to sign OAuth state with a fallback.",
+    );
+  }
+
+  if (!warnedAboutSigningFallback) {
+    console.warn(
+      "[meta] META_APP_SECRET is unset; using insecure local-dev fallback for OAuth state signing. Set the real secret before deploying.",
+    );
+    warnedAboutSigningFallback = true;
+  }
+  return "growthos-dev-meta-secret";
 }
 
 export function createOAuthState(tenantId: string) {
@@ -56,15 +82,23 @@ export function parseOAuthState(state: string) {
 /**
  * Verifies the X-Hub-Signature-256 header Meta sends with webhook POSTs.
  * Returns true when the HMAC-SHA256 of the raw body (keyed with META_APP_SECRET)
- * matches the header. When Meta isn't configured we skip verification so local
- * dev still works — but a configured deployment will reject forged payloads.
+ * matches the header.
+ *
+ * Audit finding C4 (2026-05-31): previously returned `true` (fail-open) when
+ * `metaConfigured` was false, which silently accepted forged webhook payloads
+ * if Meta env vars were partially missing in production. Now we fail closed
+ * in production — only fall through in local dev where it's useful for
+ * ngrok-relayed test events.
  */
 export function verifyMetaSignature(
   rawBody: string,
   signatureHeader: string | null,
 ): boolean {
   if (!metaConfigured) {
-    return true;
+    const isProd =
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production";
+    return !isProd;
   }
 
   if (!signatureHeader || !signatureHeader.startsWith("sha256=")) {

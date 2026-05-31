@@ -9,8 +9,31 @@ export const TIKTOK_OAUTH_SCOPES = [
   "video.publish",
 ].join(",");
 
+// Audit finding C3 (2026-05-31) — see lib/meta/config.ts for full context.
+// Refuse to sign OAuth state with a hardcoded fallback in production.
+let warnedAboutSigningFallback = false;
 function signingSecret() {
-  return process.env.TIKTOK_CLIENT_SECRET ?? "growthos-dev-tiktok-secret";
+  const real = process.env.TIKTOK_CLIENT_SECRET;
+  if (real) {
+    return real;
+  }
+
+  const isProd =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production";
+  if (isProd) {
+    throw new Error(
+      "TIKTOK_CLIENT_SECRET is required in production — refusing to sign OAuth state with a fallback.",
+    );
+  }
+
+  if (!warnedAboutSigningFallback) {
+    console.warn(
+      "[tiktok] TIKTOK_CLIENT_SECRET is unset; using insecure local-dev fallback for OAuth state signing. Set the real secret before deploying.",
+    );
+    warnedAboutSigningFallback = true;
+  }
+  return "growthos-dev-tiktok-secret";
 }
 
 export function tiktokOAuthUrl(input: {

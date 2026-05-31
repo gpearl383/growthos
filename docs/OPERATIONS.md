@@ -3,6 +3,7 @@
 > The single source of truth for **what is deployed where, with what config, and how to operate it**. Live infrastructure, environment variables, integrations, common workflows, and known gotchas. Update this file when anything below changes.
 >
 > Companion docs:
+> - [`CODE_AUDIT_2026-05-31.md`](./CODE_AUDIT_2026-05-31.md) — most recent code review, open findings by severity, what's been fixed
 > - [`GROWTHOS_REBUILD_SPEC.md`](./GROWTHOS_REBUILD_SPEC.md) — full architectural spec (the "how it was built")
 > - [`GROWTHOS_EXECUTIVE_SUMMARY.md`](./GROWTHOS_EXECUTIVE_SUMMARY.md) — product / business overview
 > - `CLAUDE.md` / `AGENTS.md` at repo root — AI agent memory pointing at this file

@@ -38,6 +38,21 @@ Before making any code change in this repo, you must be aware of the following l
 | `Could not load your leads inbox` / `Failed query: select … from tenants` | Run `node scripts/apply-supabase-catchup.mjs` against the prod DATABASE_URL — missing migration columns. |
 | Onboarded user sees no nav links | Tenant's `onboarding_complete` is `false`. Toggle via `node scripts/toggle-onboarding.mjs true` locally, or update directly in Supabase for prod. |
 
+## Documentation currency rule (non-negotiable)
+
+When you change infra, env vars, integrations, schema, storage backend, OAuth, or recovery procedures, you MUST update the corresponding doc in the **same commit**:
+
+| You changed | Update this |
+|---|---|
+| Env vars | `docs/OPERATIONS.md` §2 + `apps/web/.env.local.example` + `turbo.json#globalEnv` |
+| Vercel project/store/integration | `docs/OPERATIONS.md` §1 + §3 |
+| Supabase schema (new migration) | `packages/db/migrations/NNNN_*.sql` + append to `scripts/supabase-catchup-migrations.sql` (idempotent) |
+| Storage / auth / OAuth | `docs/OPERATIONS.md` §5 |
+| Recovery procedure | `docs/OPERATIONS.md` §4 |
+| Audit-finding fix | `docs/CODE_AUDIT_2026-05-31.md` — mark `✅ fixed in <commit>` |
+
+Stale docs are how the project loses its memory. The commit message should call out the doc update.
+
 ## When you're not sure
 
-Stop and read `docs/OPERATIONS.md` end-to-end. It has every URL, every env var, every integration's status, every known issue with its workaround. It is updated as the source of truth — if something there contradicts your memory, the doc is right.
+Stop and read `docs/OPERATIONS.md` end-to-end. Then `docs/CODE_AUDIT_2026-05-31.md` for known open issues. Both are the source of truth — if something there contradicts your memory, the doc is right.
