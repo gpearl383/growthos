@@ -1,5 +1,33 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "USE_LOCAL_DB",
+    "DATABASE_URL",
+    "TOKEN_ENCRYPTION_KEY",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+    "CLERK_SECRET_KEY",
+    "CLERK_WEBHOOK_SECRET",
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "ELEVENLABS_API_KEY",
+    "ELEVENLABS_VOICE_ID",
+    "RESEND_API_KEY",
+    "RESEND_FROM",
+    "INNGEST_EVENT_KEY",
+    "INNGEST_SIGNING_KEY",
+    "META_APP_ID",
+    "META_APP_SECRET",
+    "META_WEBHOOK_VERIFY_TOKEN",
+    "TIKTOK_CLIENT_KEY",
+    "TIKTOK_CLIENT_SECRET",
+    "CANVA_CLIENT_ID",
+    "CANVA_CLIENT_SECRET"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
