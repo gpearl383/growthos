@@ -12,7 +12,6 @@ import Link from "next/link";
 
 import { AiHelperShell } from "@/components/ai-helper/shell";
 import { AppNavShell } from "@/components/app-nav-shell";
-import { OnboardingCtaShell } from "@/components/onboarding-cta-shell";
 import { SettingsGearShell } from "@/components/settings-gear-shell";
 import { clerkConfigured } from "@/lib/env";
 import "./globals.css";
@@ -74,7 +73,20 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     </SignUpButton>
                   </SignedOut>
                   <SignedIn>
-                    <OnboardingCtaShell />
+                    {/* Always-visible Continue setup link. /get-started
+                        gracefully redirects to /leads if the tenant is
+                        already onboarded, so it's safe to keep mounted.
+                        Inlining it (rather than gating on a DB call from
+                        a Shell wrapper) keeps the layout's import graph
+                        identical to the last known-good build, which is
+                        critical for staying under Vercel's 250 MB
+                        per-serverless-function size limit. */}
+                    <Link
+                      href="/get-started"
+                      className="hidden text-sm font-medium text-slate-600 hover:text-emerald-600 md:inline-flex dark:text-slate-300 dark:hover:text-emerald-400"
+                    >
+                      Continue setup
+                    </Link>
                     <SettingsGearShell />
                     <UserButton afterSignOutUrl="/" />
                   </SignedIn>
