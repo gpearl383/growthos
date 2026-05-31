@@ -3,6 +3,8 @@ import { unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { dirname, extname, join } from "node:path";
 
+import { del as blobDel, put as blobPut } from "@vercel/blob";
+
 import { getLocalDatabasePath } from "@growthos/db";
 
 import { appUrl } from "@/lib/env";
@@ -33,6 +35,15 @@ export function mediaTypeFromMime(mimeType: string): MediaType | null {
   return match?.type ?? null;
 }
 
+// True when Vercel Blob is the active storage backend.
+// Vercel sets BLOB_READ_WRITE_TOKEN when a Blob store is linked to the project;
+// the @vercel/blob SDK reads it from the environment automatically.
+function usingBlob() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+// --- Filesystem-mode helpers (local dev only) ------------------------------
+
 export function getUploadsRoot() {
   // `.data/growthos` is the DB path; uploads live alongside it at `.data/uploads`.
   return join(dirname(getLocalDatabasePath()), "uploads");
@@ -52,17 +63,14 @@ export function mediaFileUrl(tenantId: string, filename: string) {
   return `${appUrl()}/api/media/file/${tenantId}/${filename}`;
 }
 
+// Extracts the filename from a local /api/media/file/... URL. Returns null for
+// Blob URLs — those go through `del()` by URL, not by filename.
 export function filenameFromMediaUrl(url: string): string | null {
   const match = url.match(/\/api\/media\/file\/[^/]+\/([^/?#]+)/);
   return match ? match[1] : null;
 }
 
-export async function deleteMediaFile(tenantId: string, filename: string) {
-  const filePath = getMediaFilePath(tenantId, filename);
-  if (existsSync(filePath)) {
-    await unlink(filePath);
-  }
-}
+// --- Public API ------------------------------------------------------------
 
 export type StoredMedia = {
   url: string;
@@ -86,16 +94,38 @@ export async function saveMediaBuffer(input: {
     );
   }
 
-  const dir = getTenantUploadsDir(tenantId);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-
   const extension =
     EXTENSION_BY_MIME[mimeType] ||
     (input.originalName ? extname(input.originalName) : "") ||
     "";
   const filename = `${randomUUID()}${extension}`;
+
+  if (usingBlob()) {
+    // Pathname inside the Blob store. Keeping it tenant-scoped so we can
+    // bulk-list / bulk-delete by prefix if we ever need to. The Blob URL
+    // itself is opaque and globally unique; the pathname is just metadata.
+    const pathname = `tenants/${tenantId}/${filename}`;
+    const result = await blobPut(pathname, buffer, {
+      access: "public",
+      contentType: mimeType,
+      // No need for random suffix — our randomUUID() already guarantees
+      // uniqueness, and a deterministic pathname makes manual cleanup easier.
+      addRandomSuffix: false,
+    });
+
+    return {
+      url: result.url,
+      filename: pathname,
+      mimeType,
+      type,
+    };
+  }
+
+  // Filesystem fallback for local dev.
+  const dir = getTenantUploadsDir(tenantId);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
 
   await writeFile(getMediaFilePath(tenantId, filename), buffer);
 
@@ -120,4 +150,38 @@ export async function saveUploadedFile(input: {
     mimeType: file.type || "application/octet-stream",
     originalName: file.name,
   });
+}
+
+// Deletes the underlying media binary. Best-effort — caller decides whether
+// to surface failures (current callers swallow them, since the DB row is the
+// source of truth for "exists").
+//
+// For Blob-backed assets, pass the asset URL — `@vercel/blob/del` works by
+// URL, not by pathname. For filesystem-backed assets, the filename (column
+// `media_assets.filename`) is preferred; the URL is parsed as a fallback.
+export async function deleteMediaFile(input: {
+  tenantId: string;
+  url: string;
+  filename?: string | null;
+}) {
+  const { tenantId, url, filename } = input;
+
+  // Blob URLs always live on *.public.blob.vercel-storage.com — easiest
+  // signal that this asset is in the cloud regardless of whether we happen
+  // to have the token set right now.
+  const isBlobUrl = /\.public\.blob\.vercel-storage\.com\//.test(url);
+  if (isBlobUrl) {
+    await blobDel(url);
+    return;
+  }
+
+  const localName = filename ?? filenameFromMediaUrl(url);
+  if (!localName) {
+    return;
+  }
+
+  const filePath = getMediaFilePath(tenantId, localName);
+  if (existsSync(filePath)) {
+    await unlink(filePath);
+  }
 }

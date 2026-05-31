@@ -19,6 +19,7 @@
 | **Vercel dashboard** | https://vercel.com/geoffrey-pearlmans-projects/growthos | |
 | **Vercel project ID** | `prj_rngqHqhqyk7XVY6IZ6TPTORGX0Gu` | |
 | **Vercel team ID** | `team_5QemapEKyI9T7c1BuMB4XUUT` | Slug: `geoffrey-pearlmans-projects` |
+| **Vercel Blob store** | `growthos-media` (`store_m9Ornm9zuMKzH5uS`, region `iad1`, access `public`) | All uploaded + AI-generated media. Public URLs at `m9ornm9zumkzh5us.public.blob.vercel-storage.com`. Dashboard: https://vercel.com/geoffrey-pearlmans-projects/~/stores/blob/store_m9Ornm9zuMKzH5uS |
 | **GitHub repo** | https://github.com/gpearl383/growthos | Public, MIT licensed |
 | **Default branch** | `main` | Push to `main` → auto-deploys to Vercel production |
 | **Supabase project (prod)** | ref `igizzkhcwednwbhqztgh` | Region `aws-1-us-east-1`; **NOT visible to the Supabase MCP** (different org than the MCP token) — manage via dashboard or `psql` / `postgres-js` |
@@ -52,6 +53,7 @@ All env vars **must be declared in `turbo.json#globalEnv`** or Turborepo strips 
 | `CLERK_SECRET_KEY` | Vercel + local | Clerk secret key, format `sk_test_…` |
 | `CLERK_WEBHOOK_SECRET` | Vercel + local | Verifies `/api/webhooks/clerk` signatures |
 | `TOKEN_ENCRYPTION_KEY` | Vercel + local | 32-byte hex key for AES-GCM (`tenant_secrets` table + OAuth tokens). Generate with `openssl rand -hex 32`. Code **throws in production** if missing. |
+| `BLOB_READ_WRITE_TOKEN` | Vercel (auto-provisioned by Blob store link), local optional | Read/write token for the Vercel Blob store (`growthos-media`, `store_m9Ornm9zuMKzH5uS`, region `iad1`). Required for any media upload / AI-image / voiceover on Vercel because serverless functions can't write to disk. Locally, if unset, storage falls back to `.data/uploads/` on the filesystem. |
 | `NEXT_PUBLIC_APP_URL` | Vercel + local | Public origin for absolute URLs (`https://growthos-blond.vercel.app` in prod, `http://localhost:3000` in dev) |
 
 ### Optional integration keys (graceful degrade if missing)
@@ -219,7 +221,21 @@ It's hard-coded unconditionally inside `<SignedIn>` in `apps/web/app/layout.tsx`
 
 **Future fix:** Once `VERCEL_FORCE_NO_BUILD_CACHE=1` is set (giving headroom), restore the `OnboardingCtaShell` server component that conditionally renders based on `getOnboardingState()`.
 
-### D. Pre-existing Clerk session can outlive a tenant deletion
+### D. Media storage — Vercel Blob (cloud) vs filesystem (local dev)
+
+`apps/web/lib/media/storage.ts` switches storage backends based on `BLOB_READ_WRITE_TOKEN`:
+
+- **Token set** (Vercel production / preview, or local dev with the token pulled in): uses `@vercel/blob` `put()` and `del()`. URLs returned by `put()` live on `m9ornm9zumkzh5us.public.blob.vercel-storage.com`. Pathnames are tenant-scoped (`tenants/{tenantId}/{uuid}.ext`) so bulk cleanup by prefix is easy.
+- **Token absent** (default `pnpm dev` flow): falls back to writing under `.data/uploads/{tenantId}/` and serving via `/api/media/file/{tenantId}/{filename}`. Identical to pre-Blob behavior.
+
+The original filesystem-only implementation was the root cause of the May 30 "can't upload media" bug — Vercel serverless functions have a read-only filesystem (only `/tmp` is writable, and it's ephemeral + per-invocation). Four features were broken simultaneously: media upload, AI image gen, AI voiceover, and media-file serving. The Blob backend fixes all four at once.
+
+**If you ever need to inspect / cleanup blobs:**
+- List: `pnpm dlx vercel@latest blob list`
+- Delete by URL: `pnpm dlx vercel@latest blob del <url>`
+- Dashboard: https://vercel.com/geoffrey-pearlmans-projects/~/stores/blob/store_m9Ornm9zuMKzH5uS
+
+### E. Pre-existing Clerk session can outlive a tenant deletion
 
 If you `delete from tenants` for the tenant your Clerk session is logged into, the next request hits `getOrCreateTenant()` which **creates a new tenant** automatically using the Clerk org's name/slug. This is the intended self-healing behavior; just be aware it produces a new UUID.
 

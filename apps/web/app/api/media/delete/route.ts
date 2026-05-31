@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { dbConfigured } from "@/lib/env";
 import { deleteMediaAsset, getMediaAsset } from "@/lib/media/assets";
-import { deleteMediaFile, filenameFromMediaUrl } from "@/lib/media/storage";
+import { deleteMediaFile } from "@/lib/media/storage";
 import { getOrCreateTenant } from "@/lib/tenant";
 
 export async function POST(request: Request) {
@@ -34,13 +34,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Media not found." }, { status: 404 });
   }
 
-  const filename = asset.filename ?? filenameFromMediaUrl(asset.url);
-  if (filename) {
-    try {
-      await deleteMediaFile(tenant.id, filename);
-    } catch {
-      // Best-effort file cleanup; still remove the DB record below.
-    }
+  try {
+    await deleteMediaFile({
+      tenantId: tenant.id,
+      url: asset.url,
+      filename: asset.filename,
+    });
+  } catch {
+    // Best-effort binary cleanup; still remove the DB record below so the
+    // user's view of "my library" stays consistent.
   }
 
   await deleteMediaAsset(tenant.id, id);
