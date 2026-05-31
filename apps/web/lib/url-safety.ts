@@ -1,3 +1,5 @@
+import { lookup } from "dns/promises";
+
 import { appUrl } from "@/lib/env";
 
 /** True only for absolute http(s) URLs (rejects javascript:, data:, file:, etc.). */
@@ -37,6 +39,9 @@ function isPrivateHost(hostname: string): boolean {
  * can read our locally-served media, even on localhost), and otherwise requires
  * a public http(s) host — blocking loopback, private ranges, and link-local /
  * cloud-metadata addresses.
+ *
+ * NOTE: hostname-string checks only. For full SSRF protection (CNAME to private
+ * IP, DNS rebinding) use isSafeFetchUrlAsync which also resolves DNS.
  */
 export function isSafeFetchUrl(value: string): boolean {
   let url: URL;
@@ -59,4 +64,37 @@ export function isSafeFetchUrl(value: string): boolean {
   }
 
   return !isPrivateHost(url.hostname);
+}
+
+/**
+ * Async SSRF guard that also resolves DNS so a CNAME pointing to a private
+ * IP (e.g. evil.example.com → 169.254.169.254) is caught after the hostname
+ * string check passes. Fails closed — if DNS lookup throws, returns false.
+ */
+export async function isSafeFetchUrlAsync(value: string): Promise<boolean> {
+  if (!isSafeFetchUrl(value)) return false;
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+
+  // Own origin already allowed by isSafeFetchUrl — skip extra DNS round-trip.
+  try {
+    if (url.origin === new URL(appUrl()).origin) return true;
+  } catch {
+    // fall through
+  }
+
+  try {
+    const { address } = await lookup(url.hostname, { family: 4 });
+    if (isPrivateHost(address)) return false;
+  } catch {
+    // DNS lookup failed — fail closed.
+    return false;
+  }
+
+  return true;
 }

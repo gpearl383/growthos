@@ -3,7 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 
 import type { SocialPlatform } from "@/lib/platforms";
-import { isSafeFetchUrl } from "@/lib/url-safety";
+import { isSafeFetchUrlAsync } from "@/lib/url-safety";
 
 const MAX_VISION_IMAGE_BYTES = 15 * 1024 * 1024;
 
@@ -89,13 +89,16 @@ function buildFallbackPost(input: GeneratePostInput): GeneratedPostContent {
 }
 
 async function loadImagePart(mediaUrl: string) {
-  // SSRF guard: never let user-supplied URLs reach internal/loopback hosts.
-  if (!isSafeFetchUrl(mediaUrl)) {
+  // SSRF guard: DNS-resolved check catches CNAME → private IP tricks.
+  if (!(await isSafeFetchUrlAsync(mediaUrl))) {
     return null;
   }
 
   try {
-    const response = await fetch(mediaUrl);
+    const response = await fetch(mediaUrl, {
+      redirect: "error",
+      signal: AbortSignal.timeout(15_000),
+    });
     if (!response.ok) {
       return null;
     }

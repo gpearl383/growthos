@@ -1,4 +1,4 @@
-import { isSafeFetchUrl } from "@/lib/url-safety";
+import { isSafeFetchUrlAsync } from "@/lib/url-safety";
 
 export async function generateImage(
   prompt: string,
@@ -39,10 +39,11 @@ export async function generateImage(
   }
 
   if (first?.url) {
-    if (!isSafeFetchUrl(first.url)) {
+    if (!(await isSafeFetchUrlAsync(first.url))) {
       throw new Error("OpenAI returned an image URL that failed the SSRF safety check.");
     }
     const imageResponse = await fetch(first.url, {
+      redirect: "error",
       signal: AbortSignal.timeout(30_000),
     });
     const buffer = Buffer.from(await imageResponse.arrayBuffer());
