@@ -1,4 +1,4 @@
-import { and, eq, gte } from "@growthos/db";
+import { and, eq, gte, sql } from "@growthos/db";
 import { events, tenants } from "@growthos/db";
 
 import { getDb } from "@/lib/db";
@@ -90,6 +90,22 @@ async function recordAutoReplyEvent(input: {
   });
 }
 
+async function hasAutoReplyBeenSent(
+  tenantId: string,
+  key: "commentId" | "mid",
+  value: string,
+): Promise<boolean> {
+  const db = getDb();
+  const existing = await db.query.events.findFirst({
+    where: and(
+      eq(events.tenantId, tenantId),
+      eq(events.type, "dm_sent"),
+      sql`${events.metadata}->>${key} = ${value}`,
+    ),
+  });
+  return existing !== undefined;
+}
+
 async function processCommentChange(input: {
   igAccountId: string;
   value: MetaCommentValue;
@@ -105,6 +121,10 @@ async function processCommentChange(input: {
 
   if (!text || !commentId || !senderId) {
     return { skipped: "missing_comment_data" };
+  }
+
+  if (await hasAutoReplyBeenSent(account.tenantId, "commentId", commentId)) {
+    return { skipped: "duplicate_comment" };
   }
 
   const recentCount = await countRecentAutoReplies(account.tenantId);
@@ -176,6 +196,7 @@ async function processMessagingEvent(input: {
 
   const senderId = input.event.sender?.id;
   const messageText = input.event.message?.text;
+  const mid = input.event.message?.mid;
 
   if (!senderId || !messageText) {
     return { skipped: "missing_message_data" };
@@ -183,6 +204,10 @@ async function processMessagingEvent(input: {
 
   if (senderId === account.platformUserId) {
     return { skipped: "self_message" };
+  }
+
+  if (mid && await hasAutoReplyBeenSent(account.tenantId, "mid", mid)) {
+    return { skipped: "duplicate_message" };
   }
 
   const recentCount = await countRecentAutoReplies(account.tenantId);
@@ -222,6 +247,7 @@ async function processMessagingEvent(input: {
       presetKey: welcomePreset.presetKey,
       senderId,
       messageText,
+      mid,
     },
   });
 

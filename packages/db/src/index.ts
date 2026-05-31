@@ -98,6 +98,7 @@ export {
   isNotNull,
   lte,
   or,
+  sql,
 } from "drizzle-orm";
 
 export * from "./local";
