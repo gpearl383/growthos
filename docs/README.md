@@ -7,6 +7,8 @@
 | Document | Audience | Description |
 |----------|----------|-------------|
 | **[OPERATIONS.md](./OPERATIONS.md)** | Operators (you, future you, anyone running it) | **Live runbook** — every URL, env var, integration status, recovery procedure, known gotcha. Update this when infra changes. |
+| **[INTEGRATIONS_SETUP_GUIDE.md](./INTEGRATIONS_SETUP_GUIDE.md)** | Operators setting up APIs | **Step-by-step integration setup** — Clerk, Supabase, AI keys, Meta/IG/FB, TikTok, Canva, Inngest, Resend, Upstash. Checkbox format like QA checklist. |
+| **[QA_TESTING_CHECKLIST.md](./QA_TESTING_CHECKLIST.md)** | QA / validation | End-to-end test checklist after setup is complete |
 | [GROWTHOS_EXECUTIVE_SUMMARY.md](./GROWTHOS_EXECUTIVE_SUMMARY.md) | Stakeholders | What GrowthOS is + why it exists |
 | [GROWTHOS_REBUILD_SPEC.md](./GROWTHOS_REBUILD_SPEC.md) | Engineers (esp. an AI rebuilding from scratch) | Full architectural deep-dive — schema, routes, components, security |
 | [GROWTHOS_MVP_TECHNICAL_SPEC.md](./GROWTHOS_MVP_TECHNICAL_SPEC.md) | Engineers | Original MVP technical spec (stack, schema, Meta API, Inngest, env vars) |

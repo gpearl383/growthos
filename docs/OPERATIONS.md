@@ -3,6 +3,8 @@
 > The single source of truth for **what is deployed where, with what config, and how to operate it**. Live infrastructure, environment variables, integrations, common workflows, and known gotchas. Update this file when anything below changes.
 >
 > Companion docs:
+> - [`INTEGRATIONS_SETUP_GUIDE.md`](./INTEGRATIONS_SETUP_GUIDE.md) — **step-by-step setup** for every API and social integration (Meta, TikTok, AI, Inngest, Resend, …)
+> - [`QA_TESTING_CHECKLIST.md`](./QA_TESTING_CHECKLIST.md) — validate everything after setup
 > - [`CODE_AUDIT_2026-05-31.md`](./CODE_AUDIT_2026-05-31.md) — most recent code review, open findings by severity, what's been fixed
 > - [`GROWTHOS_REBUILD_SPEC.md`](./GROWTHOS_REBUILD_SPEC.md) — full architectural spec (the "how it was built")
 > - [`GROWTHOS_EXECUTIVE_SUMMARY.md`](./GROWTHOS_EXECUTIVE_SUMMARY.md) — product / business overview
